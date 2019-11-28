@@ -245,6 +245,24 @@ describe('Carbone SDK', () => {
     });
   });
 
+  describe('Calculate hash', () => {
+    it('should generate a hash', (done) => {
+      sdk._calculateHash(path.join(__dirname, 'datasets', 'streamedFile.txt'), null, (err, hash) => {
+        assert.strictEqual(err, null);
+        assert.strictEqual(hash, 'e678c997d43d7bc0ed1d2d0be6abd66506d6a90cd120df114b707c9d91b59a11');
+        done();
+      });
+    });
+
+    it('should generate a different hash with a payload', (done) => {
+      sdk._calculateHash(path.join(__dirname, 'datasets', 'streamedFile.txt'), 'toto', (err, hash) => {
+        assert.strictEqual(err, null);
+        assert.strictEqual(hash, '353f803d315bae5ffdc99a0c17dc04a990df10e30455ce057a419c5f80654489');
+        done();
+      });
+    });
+  });
+
   describe('Get template', () => {
     describe('Callback', () => {
       it('should return the content of the file in the callback', (done) => {
@@ -317,7 +335,7 @@ describe('Carbone SDK', () => {
           }
         };
 
-        let filename = sdk.getTemplateFilename(obj);
+        let filename = sdk.getFilename(obj);
         assert.strictEqual(filename, 'tata.txt');
       });
 
@@ -325,7 +343,7 @@ describe('Carbone SDK', () => {
         let obj = {
         };
 
-        let filename = sdk.getTemplateFilename(obj);
+        let filename = sdk.getFilename(obj);
         assert.strictEqual(filename, null);
       });
 
@@ -334,7 +352,7 @@ describe('Carbone SDK', () => {
           headers: {}
         };
 
-        let filename = sdk.getTemplateFilename(obj);
+        let filename = sdk.getFilename(obj);
         assert.strictEqual(filename, null);
       });
 
@@ -345,7 +363,7 @@ describe('Carbone SDK', () => {
           }
         };
 
-        let filename = sdk.getTemplateFilename(obj);
+        let filename = sdk.getFilename(obj);
         assert.strictEqual(filename, null);
       });
     });
@@ -415,7 +433,7 @@ describe('Carbone SDK', () => {
         fileStream.pipe(writeStream);
       });
 
-      it('should return an error if the requets fails', (done) => {
+      it('should return an error if the request fails', (done) => {
         nock(CARBONE_URL)
           .get((uri) => uri.includes('template'))
           .replyWithError('Request error');
@@ -432,7 +450,7 @@ describe('Carbone SDK', () => {
         fileStream.pipe(writeStream);
       });
 
-      it('should return the filename is headers', (done) => {
+      it('should return the filename in headers', (done) => {
         nock(CARBONE_URL)
           .get((uri) => uri.includes('template'))
           .reply(200, (uri, requestBody) => {
@@ -446,13 +464,589 @@ describe('Carbone SDK', () => {
         let writeStream = fs.createWriteStream(path.join(__dirname, filename));
 
         writeStream.on('close', () => {
-          let filename = sdk.getTemplateFilename(fileStream)
+          let filename = sdk.getFilename(fileStream)
           assert.strictEqual(filename, 'tata.txt');
           _filename = 'test.txt';
           done();
         });
 
         fileStream.pipe(writeStream);
+      });
+    });
+  });
+
+  describe('Render', () => {
+    beforeEach(() => {
+      sdk.config({
+        isReturningBuffer: true
+      });
+    });
+
+    describe('With path', () => {
+      it('should render template with a path', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render(path.join(__dirname, 'datasets', 'test.odt'), {}, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(sdk._getCache().get(path.join(__dirname, 'datasets', 'test.odt')), '10e6a76d8503a18962fb3d889b628ae749e8423c0d626e687b5216e3998686e8');
+          done();
+        });
+      });
+
+      it('should render template with a path and a payload', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render(path.join(__dirname, 'datasets', 'test.odt'), { payload: 'myPayload' }, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(sdk._getCache().get(path.join(__dirname, 'datasets', 'test.odt') + 'myPayload'), '2b8168ba189026f0492aff8e3702a273862cd84ea5f1d07c8882ea3fcc36550c');
+          done();
+        });
+      });
+
+      it('should return an error with callback if hash cannot be calculated', (done) => {
+        sdk.render('/file/does/not/exist', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'ENOENT: no such file or directory, open \'/file/does/not/exist\'');
+          done();
+        });
+      });
+
+      it('should return an error with stream if the hash cannot be calculated when rendering', (done) => {
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('/file/does/not/exist', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err.message, 'ENOENT: no such file or directory, open \'/file/does/not/exist\'');
+          done();
+        });
+
+        sdkStream.pipe(writeStream)
+      });
+    });
+
+    describe('Callback', () => {
+      it('should render a template', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          done();
+        });
+      });
+
+      it('should retry post request once', (done) => {
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .replyWithError({ code: 'ECONNRESET' })
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(mock.pendingMocks().length, 0);
+          done();
+        });
+      });
+
+      it('should return an error if request failed two times', (done) => {
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .replyWithError({ code: 'ECONNRESET' })
+          .post((uri) => uri.includes('render'))
+          .replyWithError({ code: 'ECONNRESET', message: 'Aie' });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'Aie');
+          assert.strictEqual(mock.pendingMocks().length, 0);
+          done();
+        });
+      });
+
+      it('should render a template with a link', (done) => {
+        sdk.config({
+          isReturningBuffer: false
+        });
+
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer, 'https://render.carbone.io/render/renderId');
+          assert.strictEqual(filename, 'renderId.pdf');
+          done();
+        });
+      });
+
+      it('should return an error if POST request fails two times', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .replyWithError('Request error');
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'Request error');
+          done();
+        });
+      });
+
+      it('should return an error if body is not a valid JSON object', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, 'Hello');
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'Cannot parse body');
+          done();
+        });
+      });
+
+      it('should return an error carbone enigne return success = false', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: false,
+            error: 'Invalid templateId'
+          });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'Invalid templateId');
+          done();
+        });
+      });
+
+      it('should return response.statusMessage', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(404);
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          // Response.statusMessage is 'null' because we can't set it with nock
+          assert.strictEqual(err.message, 'null');
+          assert.strictEqual(buffer, undefined);
+          assert.strictEqual(filename, undefined);
+          done();
+        });
+      });
+
+      it('should return body.error message with a code different than 200', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(302, {
+            success: false,
+            error: 'Nope'
+          });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'Nope');
+          done();
+        });
+      });
+
+      it('should return an error if get render return an error', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .replyWithError('Request error');
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'Request error');
+          done();
+        });
+      });
+
+      it('should return an error if get render return a 404 error', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(404);
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'File not found');
+          done();
+        });
+      });
+
+      it('should return an error if get render return another code', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(302);
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'Error 302: an error occured');
+          done();
+        });
+      });
+
+      it('should retry request once', (done) => {
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .replyWithError({ code: 'ECONNRESET' })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(mock.pendingMocks().length, 0);
+          done();
+        });
+      });
+
+      it('should retry request once and return an error the second time', (done) => {
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .replyWithError({ code: 'ECONNRESET' })
+          .get((uri) => uri.includes('render'))
+          .replyWithError({ code: 'ECONNRESET', message: 'No' });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'No');
+          assert.strictEqual(mock.pendingMocks().length, 0);
+          done();
+        });
+      });
+    });
+
+    describe('Stream', () => {
+      let _filename = null;
+
+      afterEach(() => {
+        if (_filename !== null) {
+          fs.unlinkSync(path.join(__dirname, _filename));
+          _filename = null;
+        }
+      });
+
+      it('should render a template', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('templateId', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err, null);
+        });
+
+        writeStream.on('close', () => {
+          let content = fs.readFileSync(path.join(__dirname, 'test.txt'), 'utf8')
+          assert.strictEqual(content, 'Hello I am the streamed file!\n');
+
+          let filename = sdk.getFilename(sdkStream);
+          assert.strictEqual(filename, 'tata.txt');
+          _filename = 'test.txt';
+          done();
+        });
+
+        sdkStream.pipe(writeStream)
+      });
+
+      it('should return an error carbone enigne return success = false', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: false,
+            error: 'Invalid templateId'
+          });
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('templateId', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err.message, 'Invalid templateId');
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
+      });
+
+      it('should return response.statusMessage', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(404);
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('templateId', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err.message, 'null');
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
+      });
+
+      it('should return body.error message with a code different than 200', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(302, {
+            success: false,
+            error: 'Nope'
+          });
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('templateId', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err.message, 'Nope');
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
+      });
+
+      it('should return an error if get render return an error', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .replyWithError('Request error');
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('templateId', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err.message, 'Request error');
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
+      });
+
+      it('should return an error if get render return a 404 error', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(404);
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('templateId', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err.message, 'File not found');
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
+      });
+
+      it('should return an error if get render return another error code', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(302);
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('templateId', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err.message, 'Error 302: an error occured');
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
+      });
+
+      it('should retry both requests once', (done) => {
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .replyWithError({ code: 'ECONNRESET' })
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .replyWithError({ code: 'ECONNRESET' })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render('templateId', {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err, null);
+          done();
+        });
+
+        writeStream.on('close', () => {
+          let content = fs.readFileSync(path.join(__dirname, 'test.txt'), 'utf8')
+          assert.strictEqual(content, 'Hello I am the streamed file!\n');
+          assert.strictEqual(mock.pendingMocks().length, 0);
+
+          let filename = sdk.getFilename(sdkStream);
+          assert.strictEqual(filename, 'tata.txt');
+          _filename = 'test.txt';
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
       });
     });
   });
