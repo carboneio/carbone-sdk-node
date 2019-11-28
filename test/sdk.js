@@ -477,7 +477,7 @@ describe('Carbone SDK', () => {
 
   describe('Render', () => {
     beforeEach(() => {
-      sdk.config({
+      sdk.setOptions({
         isReturningBuffer: true
       });
     });
@@ -584,6 +584,64 @@ describe('Carbone SDK', () => {
         });
       });
 
+      it('should upload the template if file is not found and render it', (done) => {
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(404, {
+            success: false,
+            error: 'File not found'
+          })
+          .post((uri) => uri.includes('template'))
+          .reply(200, {
+            success: true,
+            data: {
+              templateId: 'fileTemplateId'
+            }
+          })
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render(path.join(__dirname, 'datasets', 'streamedFile.txt'), {}, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(mock.pendingMocks().length, 0);
+          done();
+        });
+      });
+
+      it('should return an error if upload template return an error', (done) => {
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(404, {
+            success: false,
+            error: 'File not found'
+          })
+          .post((uri) => uri.includes('template'))
+          .reply(302, {
+            success: false,
+            error: 'Nope'
+          });
+
+        sdk.render(path.join(__dirname, 'datasets', 'streamedFile.txt'), {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'Nope');
+          done();
+        });
+      });
+
       it('should retry post request once', (done) => {
         let mock = nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
@@ -628,7 +686,7 @@ describe('Carbone SDK', () => {
       });
 
       it('should render a template with a link', (done) => {
-        sdk.config({
+        sdk.setOptions({
           isReturningBuffer: false
         });
 

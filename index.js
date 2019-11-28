@@ -61,7 +61,7 @@ function returnStreamOrCallbackError (error, stream, callback) {
 }
 
 const sdkFunctions = {
-  config: function (userConfig) {
+  setOptions: function (userConfig) {
     _config = Object.assign(_config, userConfig)
   },
 
@@ -75,6 +75,10 @@ const sdkFunctions = {
   addTemplate: function (localPath, payload, callback, _retry = false) {
     if (callback === undefined) {
       callback = payload;
+      payload = '';
+    }
+
+    if (payload == null) {
       payload = '';
     }
 
@@ -221,10 +225,8 @@ const sdkFunctions = {
    * @param {Function} callback
    */
   render: function (pathOrId, data, callback) {
-    let stream;
-
     // Create stream if no callback is passed in parameter
-    stream = StreamAnswer();
+    let stream = StreamAnswer();
 
     if (pathOrId.startsWith('/')) {
       this._calculateHash(pathOrId, data.payload, (err, hash) => {
@@ -232,10 +234,10 @@ const sdkFunctions = {
           return returnStreamOrCallbackError(err, stream, callback);
         }
 
-        this._renderWithTemplateId(hash, data, stream, callback);
+        this._renderWithTemplateId(hash, pathOrId, data, stream, callback);
       });
     } else {
-      this._renderWithTemplateId(pathOrId, data, stream, callback);
+      this._renderWithTemplateId(pathOrId, null, data, stream, callback);
     }
 
     return stream;
@@ -249,7 +251,7 @@ const sdkFunctions = {
    * @param {Function} callback
    * @param {Boolean} _retry Check if the request has already been retried
    */
-  _renderWithTemplateId: function (templateId, data, stream, callback, _retry = false) {
+  _renderWithTemplateId: function (templateId, filePath, data, stream, callback, _retry = false) {
     request({
       method: 'POST',
       uri: `${_config.carboneUrl}render/${templateId}`,
@@ -259,10 +261,21 @@ const sdkFunctions = {
     }, (err, response, body) => {
       if (err) {
         if (err.code === 'ECONNRESET' && _retry === false) {
-          return this._renderWithTemplateId(templateId, data, stream, callback, true);
+          return this._renderWithTemplateId(templateId, null, data, stream, callback, true);
         }
 
         return returnStreamOrCallbackError(err, stream, callback);
+      }
+
+      // Check the file exists, else upload it and render it
+      if (response.statusCode === 404 && filePath !== null) {
+        return this.addTemplate(filePath, data.payload, (err, newTemplateId) => {
+          if (err) {
+            return returnStreamOrCallbackError(err, stream, callback);
+          }
+
+          this._renderWithTemplateId(newTemplateId, filePath, data, stream, callback, _retry);
+        });
       }
 
       return parseResponse(response, body, undefined, (err, data) => {
