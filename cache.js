@@ -12,6 +12,16 @@ const cacheFunctions = {
     }
 
     return cache;
+  },
+
+  /**
+   * Remove a path with it's hash from cache
+   * @param {String} path Path to remove from cache
+   */
+  clearTemplateCache: function (path) {
+    if (cache !== null) {
+      cache.delete(path);
+    }
   }
 }
 
