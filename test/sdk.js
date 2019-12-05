@@ -1108,4 +1108,149 @@ describe('Carbone SDK', () => {
       });
     });
   });
+
+  describe('Promise', () => {
+    describe('Add template promise', () => {
+      it('should add a template', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('template'))
+          .reply(200, {
+            success: true,
+            data: {
+              templateId: 'fileTemplateId'
+            }
+          });
+
+        sdk.addTemplatePromise(path.join(__dirname, 'datasets', 'test.odt'), 'toto').then((templateId) => {
+          assert.strictEqual(templateId, 'fileTemplateId');
+          done();
+        })
+        .catch((err) => {
+          assert.strictEqual(err, null);
+        });
+      });
+
+      it('should return an error', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('template'))
+          .replyWithError('Request error');
+
+        sdk.addTemplatePromise(path.join(__dirname, 'datasets', 'test.odt'), 'toto').then((templateId) => {
+          assert.strictEqual(1, 2);
+        })
+        .catch((err) => {
+          assert.strictEqual(err.message, 'Request error');
+          done();
+        });
+      });
+    });
+
+    describe('Get template', () => {
+      it('should return the content of the file', (done) => {
+        nock(CARBONE_URL)
+          .get((uri) => uri.includes('template'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          });
+
+        sdk.getTemplatePromise('templateId').then((content) => {
+          assert.strictEqual(content, 'Hello I am the streamed file!\n');
+          done();
+        })
+        .catch((err) => {
+          assert.strictEqual(err, null);
+        });
+      });
+
+      it('should return an error', (done) => {
+        nock(CARBONE_URL)
+          .get((uri) => uri.includes('template'))
+          .replyWithError('Request error');
+
+        sdk.getTemplatePromise('templateId').then((content) => {
+          assert.strictEqual(1, 2);
+        })
+        .catch((err) => {
+          assert.strictEqual(err.message, 'Request error');
+          done();
+        });
+      });
+    });
+
+    describe('Del template', () => {
+      it('should delete a template', (done) => {
+        nock(CARBONE_URL)
+          .delete((uri) => uri.includes('template'))
+          .reply(200, {
+            success: true,
+            error: null
+          });
+
+        sdk.delTemplatePromise('templateId').then(() => {
+          done();
+        })
+        .catch((err) => {
+          assert.strictEqual(err, null);
+        });
+      });
+
+      it('should return an error', (done) => {
+        nock(CARBONE_URL)
+          .delete((uri) => uri.includes('template'))
+          .replyWithError('Request error');
+
+        sdk.delTemplatePromise('templateId').then(() => {
+          assert.strictEqual(1, 2);
+        })
+        .catch((err) => {
+          assert.strictEqual(err.message, 'Request error');
+          done();
+        });
+      });
+    });
+
+    describe('Render template', () => {
+      it('should render a template', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.renderPromise(path.join(__dirname, 'datasets', 'test.odt'), {}).then((result) => {
+          assert.strictEqual(result.content, 'Hello I am the streamed file!\n');
+          assert.strictEqual(result.filename, 'tata.txt');
+          done();
+        })
+        .catch((err) => {
+          assert.strictEqual(err, null);
+        });
+      });
+
+      it('should return an error', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .replyWithError('Request error');
+
+        sdk.renderPromise(path.join(__dirname, 'datasets', 'test.odt'), {}).then((result) => {
+          assert.strictEqual(1, 2);
+        })
+        .catch((err) => {
+          assert.strictEqual(err.message, 'Request error');
+          done();
+        });
+      });
+    });
+  });
 });

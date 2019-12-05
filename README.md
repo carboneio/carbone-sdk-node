@@ -141,3 +141,58 @@ writeStream.on('close', () => {
 
 sdkStream.pipe(writeStream)
 ```
+
+## Promise
+
+All function of the SDK are also available with promise.
+
+### Add a template
+
+```js
+carbone.addTemplatePromise('/absolute/path/to/your/file', 'OPTIONAL-PAYLOAD')
+.then(templateId => {
+
+})
+.catch(err => {
+
+})
+```
+
+### Get a template
+
+```js
+carbone.getTemplatePromise('templateId')
+.then(content => {
+
+})
+.catch(err => {
+
+})
+```
+
+### Delete a template
+
+```js
+carbone.delTemplatePromise('templateId', 'OPTIONAL-PAYLOAD')
+.then(templateId => {
+
+})
+.catch(err => {
+
+})
+```
+
+### Render a template
+
+```js
+const dataToRender = {}
+
+carbone.renderPromise('/absolute/path/to/your/file', dataToRender)
+.then(result => {
+  // result.content contains the rendered file
+  // result.filename containes the rendered filename
+})
+.catch(err => {
+
+})
+```
