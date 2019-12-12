@@ -18,7 +18,41 @@ const carbone = require('carbone-sdk')('YOUR-API-KEY')
 
 *INFO: Each request executed in the SDK is retry once if the first reponse request is a `ECONNRESET` error*
 
+## Getting started
+
+Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render, add data.
+
+```js
+const carboneSDK = require('carbone-sdk');
+
+const data = {
+  data: {
+    // Add your data here
+  },
+  convertTo: 'pdf'
+}
+
+const writeStream = fs.createWriteStream(path.join(__dirname, 'YOUR-TEMPLATE'))
+const carboneStream = carboneSDK.render(path.join(__dirname, 'test', 'datasets', 'test.odt'), data)
+
+carboneStream.on('error', (err) => {
+  console.error(err)
+})
+
+writeStream.on('close', () => {
+  console.log('File rendered')
+})
+
+carboneStream.pipe(writeStream)
+```
+
 ## API
+
+All path you can give to carbone must be absolute path. Use the `path` module to get it.
+
+```js
+const absolutePath = path.join(__dirname, 'path', 'to', 'file.odt')
+```
 
 ### Add a template
 
