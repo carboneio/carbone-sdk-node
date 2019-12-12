@@ -19,7 +19,7 @@ StreamAnswer.prototype.setHeaders = function (headers) {
 }
 
 StreamAnswer.prototype._transform = function (chunk, enc, callback) {
-  this.push(chunk.toString());
+  this.push(chunk);
   return callback();
 }
 

@@ -74,7 +74,9 @@ const renderFunctions = {
       uri: `${config.carboneUrl}render/${templateId}`,
       headers: {
         authorization: `Bearer ${_apiKey}`
-      }
+      },
+      json: true,
+      body: data
     }, (err, response, body) => {
       if (err) {
         if (err.code === 'ECONNRESET' && _retry === false) {
@@ -95,7 +97,7 @@ const renderFunctions = {
         });
       }
 
-      return utils.parseResponse(response, body, undefined, (err, data) => {
+      return utils.parseResponse(response, body, undefined, false, (err, data) => {
         if (err) {
           return utils.returnStreamOrCallbackError(err, stream, callback);
         }
@@ -142,14 +144,14 @@ const renderFunctions = {
           return response.pipe(stream);
         }
 
-        let content = '';
+        let buffers = [];
 
         response.on('data', (chunk) => {
-          content += chunk;
+          buffers.push(chunk)
         });
 
         response.on('end', () => {
-          return callback(null, content, this.getFilename({ headers: response.headers }));
+          return callback(null, Buffer.concat(buffers), this.getFilename({ headers: response.headers }));
         });
       });
     }).on('error', (err) => {
@@ -178,22 +180,22 @@ const renderFunctions = {
       return callback(null, _cache.get(_cacheKey));
     }
 
-    fs.readFile(filePath, 'utf8', (err, content) => {
-      if (err) {
-        return callback(err);
-      }
+    const fd = fs.createReadStream(filePath);
 
-      let hash = crypto.createHash('sha256');
+    let hash = crypto.createHash('sha256');
+    hash.setEncoding('hex');
 
-      if (payload != null && payload.length > 0) {
-        hash = hash.update(new Buffer(payload))
-      }
+    if (payload != null && payload.length > 0) {
+      hash = hash.update(new Buffer(payload));
+    }
 
-      hash = hash.update(content)
-        .digest('hex');
+    hash.on('finish', () => {
+      hash = hash.read();
       _cache.set(_cacheKey, hash);
-      return callback(null, hash)
+      return callback(null, hash);
     });
+
+    fd.pipe(hash);
   }
 };
 

@@ -52,7 +52,7 @@ const templateFunctions = {
         return callback(err);
       }
 
-      return utils.parseResponse(response, body, 'templateId', callback);
+      return utils.parseResponse(response, body, 'templateId', true, callback);
     });
   },
 
@@ -82,7 +82,7 @@ const templateFunctions = {
         return callback(err);
       }
 
-      return utils.parseResponse(response, body, undefined, callback);
+      return utils.parseResponse(response, body, undefined, true, callback);
     });
   },
 
@@ -118,14 +118,14 @@ const templateFunctions = {
           return response.pipe(stream);
         }
 
-        let content = '';
+        let buffers = [];
 
         response.on('data', (chunk) => {
-          content += chunk;
+          buffers.push(chunk);
         });
 
         response.on('end', () => {
-          return callback(null, content);
+          return callback(null, Buffer.concat(buffers));
         });
       });
     }).on('error', (err) => {

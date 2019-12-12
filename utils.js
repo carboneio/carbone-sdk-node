@@ -18,14 +18,16 @@ module.exports = {
    * @param {String} wantedKey The key that must be returned
    * @param {Function} callback
    */
-  parseResponse: function (response, body, wantedKey, callback) {
-    try {
-      body = JSON.parse(body);
-    } catch (e) {
-      // Return JSON parse error only if the request is expected to work well
-      if (response.statusCode === 200) {
-        console.error('Body parsed ', body);
-        return callback(new Error('Cannot parse body'));
+  parseResponse: function (response, body, wantedKey, needParsing, callback) {
+    if (needParsing) {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        // Return JSON parse error only if the request is expected to work well
+        if (response.statusCode === 200) {
+          console.error('Body parsed ', body);
+          return callback(new Error('Cannot parse body'));
+        }
       }
     }
 
