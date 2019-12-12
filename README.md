@@ -80,6 +80,8 @@ carbone.getTemplate('templateId', (err, content) => {
 })
 ```
 
+**WARNING: The content returned is a buffer and not a string**
+
 You can also get a template with stream.
 
 ```js

@@ -274,7 +274,7 @@ describe('Carbone SDK', () => {
 
         sdk.getTemplate('templateId', (err, content) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(content, 'Hello I am the streamed file!\n');
+          assert.strictEqual(content.toString(), 'Hello I am the streamed file!\n');
           done();
         });
       });
@@ -503,9 +503,9 @@ describe('Carbone SDK', () => {
 
         sdk.render(path.join(__dirname, 'datasets', 'test.odt'), {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
-          assert.strictEqual(sdk._getCache().get(path.join(__dirname, 'datasets', 'test.odt')), '10e6a76d8503a18962fb3d889b628ae749e8423c0d626e687b5216e3998686e8');
+          assert.strictEqual(sdk._getCache().get(path.join(__dirname, 'datasets', 'test.odt')), 'beb54d3436dd00b0871702f6f8ce7f5b641cdcfb1cfa07942cdf974094df2c1f');
           done();
         });
       });
@@ -530,9 +530,9 @@ describe('Carbone SDK', () => {
 
         sdk.render(path.join(__dirname, 'datasets', 'test.odt'), { payload: 'myPayload' }, (err, buffer, filename) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
-          assert.strictEqual(sdk._getCache().get(path.join(__dirname, 'datasets', 'test.odt') + 'myPayload'), '2b8168ba189026f0492aff8e3702a273862cd84ea5f1d07c8882ea3fcc36550c');
+          assert.strictEqual(sdk._getCache().get(path.join(__dirname, 'datasets', 'test.odt') + 'myPayload'), '94cd9cc739a678d1bf94310f1e60e4beea1348ed163b65236c7fbd207c327000');
           done();
         });
       });
@@ -578,7 +578,7 @@ describe('Carbone SDK', () => {
 
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
           done();
         });
@@ -616,7 +616,7 @@ describe('Carbone SDK', () => {
 
         sdk.render(path.join(__dirname, 'datasets', 'streamedFile.txt'), {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
           assert.strictEqual(mock.pendingMocks().length, 0);
           done();
@@ -664,7 +664,7 @@ describe('Carbone SDK', () => {
 
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
           assert.strictEqual(mock.pendingMocks().length, 0);
           done();
@@ -726,7 +726,7 @@ describe('Carbone SDK', () => {
           .reply(200, 'Hello');
 
         sdk.render('templateId', {}, (err, buffer, filename) => {
-          assert.strictEqual(err.message, 'Cannot parse body');
+          assert.strictEqual(err.message, 'Invalid data');
           done();
         });
       });
@@ -855,7 +855,7 @@ describe('Carbone SDK', () => {
 
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(buffer, 'Hello I am the streamed file!\n');
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
           assert.strictEqual(mock.pendingMocks().length, 0);
           done();
@@ -1154,7 +1154,7 @@ describe('Carbone SDK', () => {
           });
 
         sdk.getTemplatePromise('templateId').then((content) => {
-          assert.strictEqual(content, 'Hello I am the streamed file!\n');
+          assert.strictEqual(content.toString(), 'Hello I am the streamed file!\n');
           done();
         })
         .catch((err) => {
@@ -1229,7 +1229,7 @@ describe('Carbone SDK', () => {
           });
 
         sdk.renderPromise(path.join(__dirname, 'datasets', 'test.odt'), {}).then((result) => {
-          assert.strictEqual(result.content, 'Hello I am the streamed file!\n');
+          assert.strictEqual(result.content.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(result.filename, 'tata.txt');
           done();
         })

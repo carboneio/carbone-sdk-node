@@ -102,6 +102,10 @@ const renderFunctions = {
           return utils.returnStreamOrCallbackError(err, stream, callback);
         }
 
+        if (data == undefined) {
+          return utils.returnStreamOrCallbackError(new Error('Invalid data'), stream, callback);
+        }
+
         let filename = data.renderId + '.' + data.inputFileExtension;
 
         // If user gave a callback and wants a link, return it
@@ -189,6 +193,10 @@ const renderFunctions = {
       hash = hash.update(new Buffer(payload));
     }
 
+    fd.on('error', (err) => {
+      return callback(err);
+    });
+
     hash.on('finish', () => {
       hash = hash.read();
       _cache.set(_cacheKey, hash);
@@ -196,7 +204,7 @@ const renderFunctions = {
     });
 
     fd.pipe(hash);
-  }
+}
 };
 
 module.exports = (apiKey) => {
