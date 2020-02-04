@@ -1,11 +1,13 @@
-# Carbone SDK
+# Carbone Render SDK
 
 The SDK to use [Carbone render](https://carbone.io) API easily.
 
 ## Install
 
 ```bash
-npm i --save carbone-sdk
+$ npm i --save carbone-sdk
+// OR
+$ yarn add carbone-sdk
 ```
 
 To use it, you will need your API key you can find on `Carbone Account` in the [API access](https://account.carbone.io/#/account/api) menu.
@@ -13,7 +15,7 @@ To use it, you will need your API key you can find on `Carbone Account` in the [
 Once you have your API key, you can require the module.
 
 ```js
-const carbone = require('carbone-sdk')('YOUR-API-KEY')
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 ```
 
 *INFO: Each request executed in the SDK is retry once if the first reponse request is a `ECONNRESET` error*
@@ -23,7 +25,7 @@ const carbone = require('carbone-sdk')('YOUR-API-KEY')
 Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render, add data.
 
 ```js
-const carboneSDK = require('carbone-sdk');
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY');
 
 const data = {
   data: {
@@ -32,7 +34,10 @@ const data = {
   convertTo: 'pdf'
 }
 
-const writeStream = fs.createWriteStream(path.join(__dirname, 'YOUR-TEMPLATE'))
+// Create a write stream with the report name as parameter.
+const writeStream = fs.createWriteStream(path.join(__dirname, 'report.odt'))
+// Pass the template path as first parameter, in this example 'test.odt' is the template.
+// Pass the data object as second parameter.
 const carboneStream = carboneSDK.render(path.join(__dirname, 'test', 'datasets', 'test.odt'), data)
 
 carboneStream.on('error', (err) => {
@@ -62,7 +67,7 @@ carbone.addTemplate('/absolute/path/to/your/file', (err, templateId) => {
 })
 ```
 
-**WARNING: The file path must be absolute.**
+**WARNING:** The file path must be absolute.
 
 You can add multiple times the same template and get different `templateId` thanks to the payload.
 
@@ -80,7 +85,7 @@ carbone.getTemplate('templateId', (err, content) => {
 })
 ```
 
-**WARNING: The content returned is a buffer and not a string**
+**WARNING:** The content returned is a buffer and not a string
 
 You can also get a template with stream.
 
@@ -146,7 +151,7 @@ carbone.render('/absolute/path/to/your/file', dataToRender, (err, buffer, filena
 })
 ```
 
-**WARNING: If you want to set a payload, it must be located in the data object**
+**WARNING:** If you want to set a payload, it must be located in the data object
 
 ```js
 const dataToRender = {
@@ -178,7 +183,7 @@ writeStream.on('close', () => {
 sdkStream.pipe(writeStream)
 ```
 
-## Promise
+## API Promise
 
 All function of the SDK are also available with promise.
 
