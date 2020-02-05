@@ -558,15 +558,50 @@ describe('Carbone SDK', () => {
     });
 
     describe('Callback', () => {
-      it('should render a template', (done) => {
+      it('should render a template without carbone version', (done) => {
         nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
-          .reply(200, {
-            success: true,
-            error: null,
-            data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+          .reply(200, function(uri, requestBody) {
+            assert.strictEqual(this.req.headers['carbone-version'], undefined);
+
+            return {
+              success: true,
+              error: null,
+              data: {
+                renderId: 'renderId',
+                inputFileExtension: 'pdf'
+              }
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render('templateId', {}, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          done();
+        });
+      });
+
+      it('should render a template with a specific version of carbone', (done) => {
+        sdk.setApiVersion(3);
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, function(uri, requestBody) {
+            assert.strictEqual(this.req.headers['carbone-version'], 3);
+
+            return {
+              success: true,
+              error: null,
+              data: {
+                renderId: 'renderId',
+                inputFileExtension: 'pdf'
+              }
             }
           })
           .get((uri) => uri.includes('render'))

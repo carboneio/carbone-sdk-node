@@ -69,12 +69,19 @@ const renderFunctions = {
    * @param {Boolean} _retry Check if the request has already been retried
    */
   _renderWithTemplateId: function (templateId, filePath, data, stream, callback, _retry = false) {
+    let _headers = {
+      authorization: `Bearer ${_apiKey}`,
+      'x-from-proxy': true
+    };
+
+    if (sdkConfig.getVersion() !== null) {
+      _headers['carbone-version'] = sdkConfig.getVersion();
+    }
+
     request({
       method: 'POST',
       uri: `${config.carboneUrl}render/${templateId}`,
-      headers: {
-        authorization: `Bearer ${_apiKey}`
-      },
+      headers: _headers,
       json: true,
       body: data
     }, (err, response, body) => {
