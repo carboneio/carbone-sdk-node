@@ -3,7 +3,7 @@ let _config = {
   isReturningBuffer: true
 };
 
-let _version = '2.0.0';
+let _version = '2';
 
 module.exports = {
   config: _config,
