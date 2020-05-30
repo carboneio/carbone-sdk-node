@@ -558,11 +558,11 @@ describe('Carbone SDK', () => {
     });
 
     describe('Callback', () => {
-      it('should render a template without carbone version', (done) => {
+      it('should render a template without carbone version (the default one must be set 2.0.0)', (done) => {
         nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
           .reply(200, function(uri, requestBody) {
-            assert.strictEqual(this.req.headers['carbone-version'], undefined);
+            assert.strictEqual(this.req.headers['carbone-version'], '2.0.0');
 
             return {
               success: true,
