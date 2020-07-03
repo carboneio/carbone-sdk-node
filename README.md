@@ -51,6 +51,18 @@ writeStream.on('close', () => {
 carboneStream.pipe(writeStream)
 ```
 
+## Carbone version
+
+You can set the version of Carbone you want to use. With this, you can upgrade your carbone version when you are ready.
+
+To set the version, call this function:
+
+```js
+carbone.setApiVersion(2) // Set the version of carbone to 2
+```
+
+*Note:* You can only set the major version of carbone.
+
 ## API
 
 All path you can give to carbone must be absolute path. Use the `path` module to get it.

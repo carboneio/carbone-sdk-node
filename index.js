@@ -14,6 +14,7 @@ module.exports = (apiKey) => {
   allFunctions = Object.assign(allFunctions, promiseFunctions(apiKey));
 
   allFunctions.setOptions = sdkConfig.setOptions;
+  allFunctions.setApiVersion = sdkConfig.setApiVersion;
   allFunctions.clearTemplateCache = cache.clearTemplateCache;
 
   // Only for test purpose

@@ -3,8 +3,21 @@ let _config = {
   isReturningBuffer: true
 };
 
+let _version = '2';
+
 module.exports = {
   config: _config,
+  getVersion: () => {
+    return _version;
+  },
+
+  /**
+   * Update the carbone version
+   * @param {Number} apiVersion Carbone version which must be used
+   */
+  setApiVersion: function (apiVersion) {
+    _version = apiVersion
+  },
 
   /**
    * Update the SDK configuration
