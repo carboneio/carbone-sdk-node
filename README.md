@@ -1,6 +1,8 @@
-# Carbone Render SDK
+# Carbone Render Node SDK
 
 The SDK to use [Carbone render](https://carbone.io) API easily.
+Carbone is a report generator (PDF, DOCX, XLSX, ODT, PPTX, ODS, XML, CSV...) using templates and JSON data.
+[Learn more about the Carbone ecosystem](https://carbone.io/documentation.html).
 
 ## Install
 
