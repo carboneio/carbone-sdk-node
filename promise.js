@@ -1,7 +1,6 @@
 const templates = require('./templates');
 const render    = require('./render');
 
-let _apiKey = null;
 let templatesFunction = null;
 let renderFunction = null;
 
@@ -77,8 +76,6 @@ const templatePromiseFunctions = {
 }
 
 module.exports = (apiKey) => {
-  _apiKey = apiKey;
-
   templatesFunction = templates(apiKey);
   renderFunction = render(apiKey);
   return templatePromiseFunctions;

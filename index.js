@@ -3,7 +3,6 @@ const templatesFunction = require('./templates');
 const renderFunctions   = require('./render');
 const promiseFunctions  = require('./promise');
 const sdkConfig         = require('./config');
-const config            = sdkConfig.config;
 
 module.exports = (apiKey) => {
   let _cache = cache.getInstance();

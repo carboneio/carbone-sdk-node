@@ -3,13 +3,9 @@ const utils = require('./utils');
 const sdkConfig         = require('./config');
 const config            = sdkConfig.config;
 const fs                = require('fs');
-const path              = require('path');
-const Transform         = require('stream').Transform;
 const StreamAnswer      = require('./streamAnswer');
-const cache             = require('./cache');
 
 let _apiKey = null;
-let _cache = null;
 
 const templateFunctions = {
     /**
@@ -138,6 +134,5 @@ const templateFunctions = {
 
 module.exports = (apiKey) => {
   _apiKey = apiKey;
-  _cache = cache.getInstance();
   return templateFunctions;
 }

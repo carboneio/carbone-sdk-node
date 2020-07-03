@@ -1,8 +1,9 @@
 const assert = require('assert');
 const path = require('path');
 const sdk = require('../index')('CARBONE_API_KEY');
-const nock = require('nock');
 const fs = require('fs');
+// eslint-disable-next-line node/no-unpublished-require
+const nock = require('nock')
 
 const CARBONE_URL = 'https://render.carbone.io/'
 
@@ -43,6 +44,7 @@ describe('Carbone SDK', () => {
     });
 
     it('should return an error if filepath is not absolute', (done) => {
+      // eslint-disable-next-line no-unused-vars
       sdk.addTemplate('./relative', (err, templateId) => {
         assert.strictEqual(err.message, 'Your path must be an absolute path');
         done();
@@ -57,6 +59,7 @@ describe('Carbone SDK', () => {
           error: 'An error occured with the API'
         });
 
+      // eslint-disable-next-line no-unused-vars
       sdk.addTemplate(path.join(__dirname, 'datasets', 'test.odt'), 'toto', (err, templateId) => {
         assert.strictEqual(err.message, 'An error occured with the API');
         done();
@@ -71,6 +74,7 @@ describe('Carbone SDK', () => {
           error: '400 server error'
         });
 
+      // eslint-disable-next-line no-unused-vars
       sdk.addTemplate(path.join(__dirname, 'datasets', 'test.odt'), 'toto', (err, templateId) => {
         assert.strictEqual(err.message, '400 server error');
         done();
@@ -82,6 +86,7 @@ describe('Carbone SDK', () => {
         .post((uri) => uri.includes('template'))
         .reply(300);
 
+      // eslint-disable-next-line no-unused-vars
       sdk.addTemplate(path.join(__dirname, 'datasets', 'test.odt'), 'toto', (err, templateId) => {
         // The status message is null because it cannot be set with nock
         assert.strictEqual(err.message, 'null');
@@ -94,6 +99,7 @@ describe('Carbone SDK', () => {
         .post((uri) => uri.includes('template'))
         .replyWithError('REQUEST ERROR');
 
+      // eslint-disable-next-line no-unused-vars
       sdk.addTemplate(path.join(__dirname, 'datasets', 'test.odt'), 'toto', (err, templateId) => {
         assert.strictEqual(err.message, 'REQUEST ERROR');
         done();
@@ -127,6 +133,7 @@ describe('Carbone SDK', () => {
         .post((uri) => uri.includes('template'))
         .replyWithError({ code: 'ECONNRESET', message: 'Connection reset' });
 
+      // eslint-disable-next-line no-unused-vars
       sdk.addTemplate(path.join(__dirname, 'datasets', 'test.odt'), 'toto', (err, templateId) => {
         assert.strictEqual(err.message, 'Connection reset');
         assert.strictEqual(mockRequest.pendingMocks().length, 0);
@@ -268,6 +275,7 @@ describe('Carbone SDK', () => {
       it('should return the content of the file in the callback', (done) => {
         nock(CARBONE_URL)
           .get((uri) => uri.includes('template'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           });
@@ -284,6 +292,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('template'))
           .reply(404);
 
+        // eslint-disable-next-line no-unused-vars
         sdk.getTemplate('templateId', (err, content) => {
           assert.strictEqual(err.message, 'File not found');
           done();
@@ -295,6 +304,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('template'))
           .reply(303);
 
+        // eslint-disable-next-line no-unused-vars
         sdk.getTemplate('templateId', (err, content) => {
           assert.strictEqual(err.message, 'Error 303: an error occured');
           done();
@@ -306,6 +316,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('template'))
           .replyWithError('Request error');
 
+        // eslint-disable-next-line no-unused-vars
         sdk.getTemplate('templateId', (err, content) => {
           assert.strictEqual(err.message, 'Request error');
           done();
@@ -313,6 +324,7 @@ describe('Carbone SDK', () => {
       });
 
       it('should return an error if the template ID is null', (done) => {
+        // eslint-disable-next-line no-unused-vars
         sdk.getTemplate(null, (err, content) => {
           assert.strictEqual(err.message, 'Invalid template ID');
           done();
@@ -320,6 +332,7 @@ describe('Carbone SDK', () => {
       });
 
       it('should return an error if the template ID is undefined', (done) => {
+        // eslint-disable-next-line no-unused-vars
         sdk.getTemplate(undefined, (err, content) => {
           assert.strictEqual(err.message, 'Invalid template ID');
           done();
@@ -380,6 +393,7 @@ describe('Carbone SDK', () => {
       it('should return the content of the file with a stream and write the new file', (done) => {
         nock(CARBONE_URL)
           .get((uri) => uri.includes('template'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -453,6 +467,7 @@ describe('Carbone SDK', () => {
       it('should return the filename in headers', (done) => {
         nock(CARBONE_URL)
           .get((uri) => uri.includes('template'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -495,6 +510,7 @@ describe('Carbone SDK', () => {
             }
           })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -522,6 +538,7 @@ describe('Carbone SDK', () => {
             }
           })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -538,6 +555,7 @@ describe('Carbone SDK', () => {
       });
 
       it('should return an error with callback if hash cannot be calculated', (done) => {
+        // eslint-disable-next-line no-unused-vars
         sdk.render('/file/does/not/exist', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'ENOENT: no such file or directory, open \'/file/does/not/exist\'');
           done();
@@ -561,6 +579,7 @@ describe('Carbone SDK', () => {
       it('should render a template without carbone version (the default one must be set 2.0.0)', (done) => {
         nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, function(uri, requestBody) {
             assert.strictEqual(this.req.headers['carbone-version'], '2');
 
@@ -574,6 +593,7 @@ describe('Carbone SDK', () => {
             }
           })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -592,6 +612,7 @@ describe('Carbone SDK', () => {
         sdk.setApiVersion(3);
         nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, function(uri, requestBody) {
             assert.strictEqual(this.req.headers['carbone-version'], 3);
 
@@ -605,6 +626,7 @@ describe('Carbone SDK', () => {
             }
           })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -643,6 +665,7 @@ describe('Carbone SDK', () => {
             }
           })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -659,7 +682,7 @@ describe('Carbone SDK', () => {
       });
 
       it('should return an error if upload template return an error', (done) => {
-        let mock = nock(CARBONE_URL)
+        nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
           .reply(404, {
             success: false,
@@ -671,6 +694,7 @@ describe('Carbone SDK', () => {
             error: 'Nope'
           });
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render(path.join(__dirname, 'datasets', 'streamedFile.txt'), {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Nope');
           done();
@@ -691,6 +715,7 @@ describe('Carbone SDK', () => {
             }
           })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -713,6 +738,7 @@ describe('Carbone SDK', () => {
           .post((uri) => uri.includes('render'))
           .replyWithError({ code: 'ECONNRESET', message: 'Aie' });
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Aie');
           assert.strictEqual(mock.pendingMocks().length, 0);
@@ -749,6 +775,7 @@ describe('Carbone SDK', () => {
           .post((uri) => uri.includes('render'))
           .replyWithError('Request error');
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Request error');
           done();
@@ -760,6 +787,7 @@ describe('Carbone SDK', () => {
           .post((uri) => uri.includes('render'))
           .reply(200, 'Hello');
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Invalid data');
           done();
@@ -774,6 +802,7 @@ describe('Carbone SDK', () => {
             error: 'Invalid templateId'
           });
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Invalid templateId');
           done();
@@ -802,6 +831,7 @@ describe('Carbone SDK', () => {
             error: 'Nope'
           });
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Nope');
           done();
@@ -822,6 +852,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('render'))
           .replyWithError('Request error');
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Request error');
           done();
@@ -842,6 +873,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('render'))
           .reply(404);
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'File not found');
           done();
@@ -862,6 +894,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('render'))
           .reply(302);
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Error 302: an error occured');
           done();
@@ -882,6 +915,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('render'))
           .replyWithError({ code: 'ECONNRESET' })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -913,6 +947,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('render'))
           .replyWithError({ code: 'ECONNRESET', message: 'No' });
 
+        // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'No');
           assert.strictEqual(mock.pendingMocks().length, 0);
@@ -943,6 +978,7 @@ describe('Carbone SDK', () => {
             }
           })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -1114,6 +1150,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('render'))
           .replyWithError({ code: 'ECONNRESET' })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -1170,6 +1207,7 @@ describe('Carbone SDK', () => {
           .post((uri) => uri.includes('template'))
           .replyWithError('Request error');
 
+        // eslint-disable-next-line no-unused-vars
         sdk.addTemplatePromise(path.join(__dirname, 'datasets', 'test.odt'), 'toto').then((templateId) => {
           assert.strictEqual(1, 2);
         })
@@ -1184,6 +1222,7 @@ describe('Carbone SDK', () => {
       it('should return the content of the file', (done) => {
         nock(CARBONE_URL)
           .get((uri) => uri.includes('template'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           });
@@ -1202,6 +1241,7 @@ describe('Carbone SDK', () => {
           .get((uri) => uri.includes('template'))
           .replyWithError('Request error');
 
+        // eslint-disable-next-line no-unused-vars
         sdk.getTemplatePromise('templateId').then((content) => {
           assert.strictEqual(1, 2);
         })
@@ -1257,6 +1297,7 @@ describe('Carbone SDK', () => {
             }
           })
           .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
           .reply(200, (uri, requestBody) => {
             return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
           }, {
@@ -1278,7 +1319,7 @@ describe('Carbone SDK', () => {
           .post((uri) => uri.includes('render'))
           .replyWithError('Request error');
 
-        sdk.renderPromise(path.join(__dirname, 'datasets', 'test.odt'), {}).then((result) => {
+        sdk.renderPromise(path.join(__dirname, 'datasets', 'test.odt'), {}).then(() => {
           assert.strictEqual(1, 2);
         })
         .catch((err) => {

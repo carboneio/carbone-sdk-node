@@ -1,7 +1,5 @@
 const request           = require('request');
 const fs                = require('fs');
-const path              = require('path');
-const Transform         = require('stream').Transform;
 const StreamAnswer      = require('./streamAnswer');
 const cache             = require('./cache');
 const crypto            = require('crypto');
@@ -196,7 +194,7 @@ const renderFunctions = {
     hash.setEncoding('hex');
 
     if (payload != null && payload.length > 0) {
-      hash = hash.update(new Buffer(payload));
+      hash = hash.update(Buffer.from(payload));
     }
 
     fd.on('error', (err) => {
