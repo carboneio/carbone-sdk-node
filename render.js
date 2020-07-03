@@ -70,8 +70,7 @@ const renderFunctions = {
    */
   _renderWithTemplateId: function (templateId, filePath, data, stream, callback, _retry = false) {
     let _headers = {
-      authorization: `Bearer ${_apiKey}`,
-      'x-from-proxy': true
+      authorization: `Bearer ${_apiKey}`
     };
 
     if (sdkConfig.getVersion() !== null) {

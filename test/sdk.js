@@ -562,7 +562,7 @@ describe('Carbone SDK', () => {
         nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
           .reply(200, function(uri, requestBody) {
-            assert.strictEqual(this.req.headers['carbone-version'], '2.0.0');
+            assert.strictEqual(this.req.headers['carbone-version'], '2');
 
             return {
               success: true,
