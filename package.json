@@ -7,8 +7,9 @@
     "test": "test"
   },
   "dependencies": {
-    "kitten-cache": "^0.2.0",
-    "request": "^2.88.0"
+    "form-data": "^3.0.0",
+    "kitten-cache": "^0.3.0",
+    "simple-get": "^4.0.0"
   },
   "devDependencies": {
     "eslint": "^7.3.1",

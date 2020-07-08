@@ -1,5 +1,6 @@
-const request           = require('request');
-const utils = require('./utils');
+const get               = require('simple-get');
+const FormData          = require('form-data')
+const utils             = require('./utils');
 const sdkConfig         = require('./config');
 const config            = sdkConfig.config;
 const fs                = require('fs');
@@ -29,25 +30,26 @@ const templateFunctions = {
       return callback(new Error('Your path must be an absolute path'));
     }
 
-    request({
+    const form = new FormData()
+    form.append('payload', payload)
+    form.append('template', fs.createReadStream(localPath))
+
+    get.concat({
       method: 'POST',
-      uri: `${config.carboneUrl}template`,
-      formData: {
-        payload: payload,
-        template: fs.createReadStream(localPath)
-      },
+      url: `${config.carboneUrl}template`,
+      body: form,
       headers: {
-        authorization: `Bearer ${_apiKey}`
+        authorization: `Bearer ${_apiKey}`,
+        "content-type": form.getHeaders()['content-type'],
+        'carbone-version': sdkConfig.getVersion()
       }
     }, (err, response, body) => {
       if (err) {
         if (err.code === 'ECONNRESET' && !_retry) {
           return this.addTemplate(localPath, payload, callback, true);
         }
-
         return callback(err);
       }
-
       return utils.parseResponse(response, body, 'templateId', true, callback);
     });
   },
@@ -63,23 +65,22 @@ const templateFunctions = {
       return callback(new Error('Invalid template ID'));
     }
 
-    request({
+    get.concat({
       method: 'DELETE',
-      uri: `${config.carboneUrl}template/${templateId}`,
+      url: `${config.carboneUrl}template/${templateId}`,
       headers: {
-        authorization: `Bearer ${_apiKey}`
+        authorization: `Bearer ${_apiKey}`,
+        'carbone-version': sdkConfig.getVersion()
       }
     }, (err, response, body) => {
       if (err) {
         if (err.code === 'ECONNRESET' && !_retry) {
           return this.delTemplate(templateId, callback, true);
         }
-
         return callback(err);
       }
-
       return utils.parseResponse(response, body, undefined, true, callback);
-    });
+    })
   },
 
   /**
@@ -96,13 +97,17 @@ const templateFunctions = {
       return callback(new Error('Invalid template ID'));
     }
 
-    request({
+    get({
       method: 'GET',
-      uri: `${config.carboneUrl}template/${templateId}`,
+      url: `${config.carboneUrl}template/${templateId}`,
       headers: {
-        authorization: `Bearer ${_apiKey}`
+        authorization: `Bearer ${_apiKey}`,
+        'carbone-version': sdkConfig.getVersion()
       }
-    }).on('response', (response) => {
+    }, function(err, response) {
+      if (err) {
+        return utils.returnStreamOrCallbackError(err, stream, callback);
+      }
       utils.parseStreamedResponse(response, (err) => {
         if (err) {
           return utils.returnStreamOrCallbackError(err, stream, callback);
@@ -124,10 +129,7 @@ const templateFunctions = {
           return callback(null, Buffer.concat(buffers));
         });
       });
-    }).on('error', (err) => {
-      return utils.returnStreamOrCallbackError(err, stream, callback);
-    });
-
+    })
     return stream;
   }
 };

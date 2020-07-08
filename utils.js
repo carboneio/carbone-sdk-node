@@ -25,7 +25,6 @@ module.exports = {
       } catch (e) {
         // Return JSON parse error only if the request is expected to work well
         if (response.statusCode === 200) {
-          console.error('Body parsed ', body);
           return callback(new Error('Cannot parse body'));
         }
       }

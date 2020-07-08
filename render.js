@@ -1,4 +1,5 @@
-const request           = require('request');
+const get               = require('simple-get');
+const templates         = require('./templates');
 const fs                = require('fs');
 const StreamAnswer      = require('./streamAnswer');
 const cache             = require('./cache');
@@ -9,6 +10,7 @@ const config            = sdkConfig.config;
 
 let _apiKey = null;
 let _cache = null;
+let _templatesFunction = null;
 
 const renderFunctions = {
 /**
@@ -44,15 +46,15 @@ const renderFunctions = {
     let stream = StreamAnswer();
 
     if (pathOrId.startsWith('/')) {
-      this._calculateHash(pathOrId, data.payload, (err, hash) => {
+      renderFunctions._calculateHash(pathOrId, data.payload, (err, hash) => {
         if (err) {
           return utils.returnStreamOrCallbackError(err, stream, callback);
         }
 
-        this._renderWithTemplateId(hash, pathOrId, data, stream, callback);
+        renderFunctions._renderWithTemplateId(hash, pathOrId, data, stream, callback);
       });
     } else {
-      this._renderWithTemplateId(pathOrId, null, data, stream, callback);
+      renderFunctions._renderWithTemplateId(pathOrId, null, data, stream, callback);
     }
 
     return stream;
@@ -67,41 +69,37 @@ const renderFunctions = {
    * @param {Boolean} _retry Check if the request has already been retried
    */
   _renderWithTemplateId: function (templateId, filePath, data, stream, callback, _retry = false) {
-    let _headers = {
-      authorization: `Bearer ${_apiKey}`
-    };
-
-    if (sdkConfig.getVersion() !== null) {
-      _headers['carbone-version'] = sdkConfig.getVersion();
-    }
-
-    request({
+    get.concat({
       method: 'POST',
-      uri: `${config.carboneUrl}render/${templateId}`,
-      headers: _headers,
-      json: true,
-      body: data
+      url: `${config.carboneUrl}render/${templateId}`,
+      headers: {
+        authorization: `Bearer ${_apiKey}`,
+        'carbone-version': sdkConfig.getVersion(),
+        'content-type': 'application/json'
+      },
+      json: false, // if true, simple-get tries to Parse the response
+      body: JSON.stringify(data)
     }, (err, response, body) => {
       if (err) {
         if (err.code === 'ECONNRESET' && _retry === false) {
-          return this._renderWithTemplateId(templateId, null, data, stream, callback, true);
+          return renderFunctions._renderWithTemplateId(templateId, null, data, stream, callback, true);
         }
-
         return utils.returnStreamOrCallbackError(err, stream, callback);
       }
 
       // Check the file exists, else upload it and render it
       if (response.statusCode === 404 && filePath !== null) {
-        return this.addTemplate(filePath, data.payload, (err, newTemplateId) => {
+
+        return _templatesFunction.addTemplate(filePath, data.payload, (err, newTemplateId) => {
           if (err) {
             return utils.returnStreamOrCallbackError(err, stream, callback);
           }
 
-          this._renderWithTemplateId(newTemplateId, filePath, data, stream, callback, _retry);
+          renderFunctions._renderWithTemplateId(newTemplateId, filePath, data, stream, callback, _retry);
         });
       }
 
-      return utils.parseResponse(response, body, undefined, false, (err, data) => {
+      return utils.parseResponse(response, body, undefined, true, (err, data) => {
         if (err) {
           return utils.returnStreamOrCallbackError(err, stream, callback);
         }
@@ -116,8 +114,7 @@ const renderFunctions = {
         if (callback !== undefined && !config.isReturningBuffer) {
           return callback(null, `https://render.carbone.io/render/${data.renderId}`, filename);
         }
-
-        return this._getRenderedReport(data.renderId, stream, callback);
+        return renderFunctions._getRenderedReport(data.renderId, stream, callback);
       });
     });
 
@@ -134,13 +131,20 @@ const renderFunctions = {
    * @param {Boolean} _retry Check if the request has already been retried
    */
   _getRenderedReport: function (renderId, stream, callback, _retry = false) {
-    request({
+    get({
       method: 'GET',
-      uri: `${config.carboneUrl}render/${renderId}`,
+      url: `${config.carboneUrl}render/${renderId}`,
       headers: {
-        authorization: `Bearer ${_apiKey}`
+        authorization: `Bearer ${_apiKey}`,
+        'carbone-version': sdkConfig.getVersion()
       }
-    }).on('response', (response) => {
+    }, function(err, response) {
+      if (err) {
+        if (err.code === 'ECONNRESET' && _retry === false) {
+          return renderFunctions._getRenderedReport(renderId, stream, callback, true);
+        }
+        return utils.returnStreamOrCallbackError(err, stream, callback);
+      }
       utils.parseStreamedResponse(response, (err) => {
         if (err) {
           return utils.returnStreamOrCallbackError(err, stream, callback);
@@ -159,15 +163,9 @@ const renderFunctions = {
         });
 
         response.on('end', () => {
-          return callback(null, Buffer.concat(buffers), this.getFilename({ headers: response.headers }));
+          return callback(null, Buffer.concat(buffers), renderFunctions.getFilename({ headers: response.headers }));
         });
       });
-    }).on('error', (err) => {
-      if (err && err.code === 'ECONNRESET' && _retry === false) {
-        return this._getRenderedReport(renderId, stream, callback, true);
-      }
-
-      return utils.returnStreamOrCallbackError(err, stream, callback);
     });
   },
 
@@ -214,6 +212,6 @@ const renderFunctions = {
 module.exports = (apiKey) => {
   _apiKey = apiKey;
   _cache = cache.getInstance();
-
+  _templatesFunction = templates(apiKey);
   return renderFunctions;
 }

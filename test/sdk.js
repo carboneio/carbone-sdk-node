@@ -789,7 +789,7 @@ describe('Carbone SDK', () => {
 
         // eslint-disable-next-line no-unused-vars
         sdk.render('templateId', {}, (err, buffer, filename) => {
-          assert.strictEqual(err.message, 'Invalid data');
+          assert.strictEqual(err.message, 'Cannot parse body');
           done();
         });
       });
