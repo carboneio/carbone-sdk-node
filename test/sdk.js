@@ -493,7 +493,9 @@ describe('Carbone SDK', () => {
   describe('Render', () => {
     beforeEach(() => {
       sdk.setOptions({
-        isReturningBuffer: true
+        isReturningBuffer: true,
+        retriesIntervalOnError: 0,
+        retriesOnError: 1
       });
     });
 
@@ -1150,7 +1152,8 @@ describe('Carbone SDK', () => {
         sdkStream.pipe(writeStream);
       });
 
-      it('should retry both requests once', (done) => {
+      it('should retry both requests once with no delay', (done) => {
+        var _start = process.hrtime();
         let mock = nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
           .replyWithError({ code: 'ECONNRESET' })
@@ -1189,6 +1192,114 @@ describe('Carbone SDK', () => {
           let filename = sdk.getFilename(sdkStream);
           assert.strictEqual(filename, 'tata.txt');
           _filename = 'test.txt';
+          var _diff = process.hrtime(_start);
+          var _elapsed = ((_diff[0] * 1e9 + _diff[1]) / 1e6);
+          assert(_elapsed < 100);
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
+      });
+
+      it('should retry one time with a delay of 2 secondes ', (done) => {
+        sdk.setOptions({ retriesOnError: 1, retriesIntervalOnError: 2000 });
+        var _start = process.hrtime();
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .delay(0)
+          .replyWithError({ code: 'ETIMEDOUT' })
+          .post((uri) => uri.includes('render'))
+          .delay(0)
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .delay(0)
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err, null);
+          done();
+        });
+
+        writeStream.on('close', () => {
+          let content = fs.readFileSync(path.join(__dirname, 'test.txt'), 'utf8')
+          assert.strictEqual(content, 'Hello I am the streamed file!\n');
+          assert.strictEqual(mock.pendingMocks().length, 0);
+
+          let filename = sdk.getFilename(sdkStream);
+          assert.strictEqual(filename, 'tata.txt');
+          _filename = 'test.txt';
+          var _diff = process.hrtime(_start);
+          var _elapsed = ((_diff[0] * 1e9 + _diff[1]) / 1e6);
+          assert(_elapsed >= 2000);
+          done();
+        });
+
+        sdkStream.pipe(writeStream);
+      });
+
+      it('should retry 6 times with a delay of 500 ms ', (done) => {
+        sdk.setOptions({ retriesOnError: 6, retriesIntervalOnError: 500 });
+        var _start = process.hrtime();
+        let mock = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render')).delay(0).replyWithError({ code: 'ECONNRESET' })
+          .post((uri) => uri.includes('render')).delay(0).replyWithError({ code: 'ETIMEDOUT' })
+          .post((uri) => uri.includes('render')).delay(0).replyWithError({ code: 'ESOCKETTIMEDOUT' })
+          .post((uri) => uri.includes('render')).delay(0).replyWithError({ code: 'ECONNREFUSED' })
+          .post((uri) => uri.includes('render')).delay(0).replyWithError({ code: 'ENOTFOUND' })
+          .post((uri) => uri.includes('render')).delay(0).replyWithError({ code: 'EPIPE' })
+          .post((uri) => uri.includes('render'))
+          .delay(0)
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId',
+              inputFileExtension: 'pdf'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          .delay(0)
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
+
+        sdkStream.on('error', (err) => {
+          assert.strictEqual(err, null);
+          done();
+        });
+
+        writeStream.on('close', () => {
+          let content = fs.readFileSync(path.join(__dirname, 'test.txt'), 'utf8')
+          assert.strictEqual(content, 'Hello I am the streamed file!\n');
+          assert.strictEqual(mock.pendingMocks().length, 0);
+
+          let filename = sdk.getFilename(sdkStream);
+          assert.strictEqual(filename, 'tata.txt');
+          _filename = 'test.txt';
+          var _diff = process.hrtime(_start);
+          var _elapsed = ((_diff[0] * 1e9 + _diff[1]) / 1e6);
+          assert(_elapsed >= 3000);
           done();
         });
 
