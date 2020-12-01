@@ -46,7 +46,7 @@ describe('Carbone SDK', () => {
     it('should return an error if filepath is not absolute', (done) => {
       // eslint-disable-next-line no-unused-vars
       sdk.addTemplate('./relative', (err, templateId) => {
-        assert.strictEqual(err.message, 'Your path must be an absolute path');
+        assert.strictEqual(err.message, 'The path must be an absolute path');
         done();
       })
     });
@@ -573,9 +573,24 @@ describe('Carbone SDK', () => {
 
         sdkStream.pipe(writeStream)
       });
+      it('should throw an error if the path is not absolute', () => {
+        assert.throws(() => sdk.render('./template.odt', {}), new Error('The path must be an absolute path'));
+      });
+
     });
 
     describe('Callback', () => {
+      const TEMPLATE_ID = 'd8f0ef8f77d246dda97de38aab3a86c247b46121e6818638d79a4fa00638cc14';
+
+      it('should return an error if the template path is not absolute', (done) => {
+        sdk.render('./template.ods', {}, (err, buffer, filename) => {
+          assert.strictEqual(err.message, 'The path must be an absolute path');
+          assert.strictEqual(buffer, undefined);
+          assert.strictEqual(filename, undefined);
+          done();
+        });
+      });
+
       it('should render a template without carbone version (the default one must be set 2.0.0)', (done) => {
         nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
@@ -600,7 +615,7 @@ describe('Carbone SDK', () => {
             'Content-Disposition': 'filename="tata.txt"'
           });
 
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
           assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
@@ -633,7 +648,7 @@ describe('Carbone SDK', () => {
             'Content-Disposition': 'filename="tata.txt"'
           });
 
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
           assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
@@ -722,7 +737,7 @@ describe('Carbone SDK', () => {
             'Content-Disposition': 'filename="tata.txt"'
           });
 
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
           assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
@@ -739,7 +754,7 @@ describe('Carbone SDK', () => {
           .replyWithError({ code: 'ECONNRESET', message: 'Aie' });
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Aie');
           assert.strictEqual(mock.pendingMocks().length, 0);
           done();
@@ -762,7 +777,7 @@ describe('Carbone SDK', () => {
             }
           });
 
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
           assert.strictEqual(buffer, 'https://render.carbone.io/render/renderId');
           assert.strictEqual(filename, 'renderId.pdf');
@@ -776,7 +791,7 @@ describe('Carbone SDK', () => {
           .replyWithError('Request error');
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Request error');
           done();
         });
@@ -788,7 +803,7 @@ describe('Carbone SDK', () => {
           .reply(200, 'Hello');
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Cannot parse body');
           done();
         });
@@ -803,7 +818,7 @@ describe('Carbone SDK', () => {
           });
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Invalid templateId');
           done();
         });
@@ -814,7 +829,7 @@ describe('Carbone SDK', () => {
           .post((uri) => uri.includes('render'))
           .reply(404);
 
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           // Response.statusMessage is 'null' because we can't set it with nock
           assert.strictEqual(err.message, 'null');
           assert.strictEqual(buffer, undefined);
@@ -832,7 +847,7 @@ describe('Carbone SDK', () => {
           });
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Nope');
           done();
         });
@@ -853,7 +868,7 @@ describe('Carbone SDK', () => {
           .replyWithError('Request error');
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Request error');
           done();
         });
@@ -874,7 +889,7 @@ describe('Carbone SDK', () => {
           .reply(404);
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'File not found');
           done();
         });
@@ -895,7 +910,7 @@ describe('Carbone SDK', () => {
           .reply(302);
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'Error 302: an error occured');
           done();
         });
@@ -922,7 +937,7 @@ describe('Carbone SDK', () => {
             'Content-Disposition': 'filename="tata.txt"'
           });
 
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
           assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
           assert.strictEqual(filename, 'tata.txt');
@@ -948,7 +963,7 @@ describe('Carbone SDK', () => {
           .replyWithError({ code: 'ECONNRESET', message: 'No' });
 
         // eslint-disable-next-line no-unused-vars
-        sdk.render('templateId', {}, (err, buffer, filename) => {
+        sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err.message, 'No');
           assert.strictEqual(mock.pendingMocks().length, 0);
           done();
@@ -958,6 +973,7 @@ describe('Carbone SDK', () => {
 
     describe('Stream', () => {
       let _filename = null;
+      const TEMPLATE_ID = 'd8f0ef8f77d246dda97de38aab3a86c247b46121e6818638d79a4fa00638cc14';
 
       afterEach(() => {
         if (_filename !== null) {
@@ -986,7 +1002,7 @@ describe('Carbone SDK', () => {
           });
 
         let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
-        let sdkStream = sdk.render('templateId', {});
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
 
         sdkStream.on('error', (err) => {
           assert.strictEqual(err, null);
@@ -1014,7 +1030,7 @@ describe('Carbone SDK', () => {
           });
 
         let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
-        let sdkStream = sdk.render('templateId', {});
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
 
         sdkStream.on('error', (err) => {
           assert.strictEqual(err.message, 'Invalid templateId');
@@ -1030,7 +1046,7 @@ describe('Carbone SDK', () => {
           .reply(404);
 
         let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
-        let sdkStream = sdk.render('templateId', {});
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
 
         sdkStream.on('error', (err) => {
           assert.strictEqual(err.message, 'null');
@@ -1049,7 +1065,7 @@ describe('Carbone SDK', () => {
           });
 
         let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
-        let sdkStream = sdk.render('templateId', {});
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
 
         sdkStream.on('error', (err) => {
           assert.strictEqual(err.message, 'Nope');
@@ -1074,7 +1090,7 @@ describe('Carbone SDK', () => {
           .replyWithError('Request error');
 
         let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
-        let sdkStream = sdk.render('templateId', {});
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
 
         sdkStream.on('error', (err) => {
           assert.strictEqual(err.message, 'Request error');
@@ -1099,7 +1115,7 @@ describe('Carbone SDK', () => {
           .reply(404);
 
         let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
-        let sdkStream = sdk.render('templateId', {});
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
 
         sdkStream.on('error', (err) => {
           assert.strictEqual(err.message, 'File not found');
@@ -1124,7 +1140,7 @@ describe('Carbone SDK', () => {
           .reply(302);
 
         let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
-        let sdkStream = sdk.render('templateId', {});
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
 
         sdkStream.on('error', (err) => {
           assert.strictEqual(err.message, 'Error 302: an error occured');
@@ -1158,7 +1174,7 @@ describe('Carbone SDK', () => {
           });
 
         let writeStream = fs.createWriteStream(path.join(__dirname, 'test.txt'));
-        let sdkStream = sdk.render('templateId', {});
+        let sdkStream = sdk.render(TEMPLATE_ID, {});
 
         sdkStream.on('error', (err) => {
           assert.strictEqual(err, null);

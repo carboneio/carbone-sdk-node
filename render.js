@@ -45,7 +45,7 @@ const renderFunctions = {
     // Create stream if no callback is passed in parameter
     let stream = StreamAnswer();
 
-    if (pathOrId.startsWith('/')) {
+    if (utils.checkPathIsAbsolute(pathOrId)) {
       renderFunctions._calculateHash(pathOrId, data.payload, (err, hash) => {
         if (err) {
           return utils.returnStreamOrCallbackError(err, stream, callback);
@@ -53,8 +53,10 @@ const renderFunctions = {
 
         renderFunctions._renderWithTemplateId(hash, pathOrId, data, stream, callback);
       });
-    } else {
+    } else if (pathOrId.length === 64) {
       renderFunctions._renderWithTemplateId(pathOrId, null, data, stream, callback);
+    } else {
+      return utils.returnStreamOrCallbackError(new Error('The path must be an absolute path'), stream, callback);
     }
 
     return stream;

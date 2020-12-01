@@ -27,7 +27,7 @@ const templateFunctions = {
     }
 
     if (!utils.checkPathIsAbsolute(localPath)) {
-      return callback(new Error('Your path must be an absolute path'));
+      return callback(new Error('The path must be an absolute path'));
     }
 
     const form = new FormData()

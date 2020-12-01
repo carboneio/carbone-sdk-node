@@ -1,13 +1,14 @@
+const path = require('path');
+
 module.exports = {
   /**
    * Return the absolute path of the file
    * @param {String} localPath User filepath
    */
   checkPathIsAbsolute: function (localPath) {
-    if (localPath.startsWith('/')) {
+    if (path.isAbsolute(localPath)) {
       return true;
     }
-
     return false;
   },
 
