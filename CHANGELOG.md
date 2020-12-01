@@ -1,3 +1,6 @@
+### v1.1.0
+  - Throw an error when a relative path is passed to the `render` function. Only absolute path are accepted.
+
 ### v1.0.0
   - Release July 3rd, 2020
   - It is possible to interact with the Carbone Render API with the following methods:
