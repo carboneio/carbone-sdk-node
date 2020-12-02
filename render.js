@@ -70,7 +70,7 @@ const renderFunctions = {
    * @param {Function} callback
    * @param {Boolean} _retry Check if the request has already been retried
    */
-  _renderWithTemplateId: function (templateId, filePath, data, stream, callback, _retry = false) {
+  _renderWithTemplateId: function (templateId, filePath, data, stream, callback, _retries = 0) {
     get.concat({
       method: 'POST',
       url: `${config.carboneUrl}render/${templateId}`,
@@ -83,8 +83,12 @@ const renderFunctions = {
       body: JSON.stringify(data)
     }, (err, response, body) => {
       if (err) {
-        if (err.code === 'ECONNRESET' && _retry === false) {
-          return renderFunctions._renderWithTemplateId(templateId, null, data, stream, callback, true);
+        if ( _retries < config.retriesOnError &&
+          (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT' ||
+           err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || err.code === 'EPIPE')) {
+          return setTimeout(() => {
+            renderFunctions._renderWithTemplateId(templateId, filePath, data, stream, callback, _retries + 1);
+          }, config.retriesIntervalOnError);
         }
         return utils.returnStreamOrCallbackError(err, stream, callback);
       }
@@ -97,7 +101,7 @@ const renderFunctions = {
             return utils.returnStreamOrCallbackError(err, stream, callback);
           }
 
-          renderFunctions._renderWithTemplateId(newTemplateId, filePath, data, stream, callback, _retry);
+          renderFunctions._renderWithTemplateId(newTemplateId, filePath, data, stream, callback, _retries);
         });
       }
 

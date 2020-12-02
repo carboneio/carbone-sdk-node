@@ -1,6 +1,8 @@
 let _config = {
   carboneUrl: 'https://render.carbone.io/',
-  isReturningBuffer: true
+  isReturningBuffer: true,
+  retriesOnError: 1, // number of retries
+  retriesIntervalOnError: 0 // unit ms
 };
 
 let _version = '2';
