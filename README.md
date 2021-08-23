@@ -1,7 +1,11 @@
 # Carbone Render Node SDK
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/carboneio/carbone-sdk-node?style=for-the-badge&logo=python)](https://pypi.org/project/carbone-sdk)
+[![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg?style=for-the-badge)](./API-REFERENCE.md)
+
 
 The SDK to use [Carbone render](https://carbone.io) API easily.
-Carbone is a report generator (PDF, DOCX, XLSX, ODT, PPTX, ODS, XML, CSV...) using templates and JSON data.
+
+> Carbone is a report generator (PDF, DOCX, XLSX, ODT, PPTX, ODS, XML, CSV...) using templates and JSON data.
 [Learn more about the Carbone ecosystem](https://carbone.io/documentation.html).
 
 ## Install
