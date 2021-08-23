@@ -1,5 +1,5 @@
 # Carbone Render Node SDK
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/carboneio/carbone-sdk-node?style=for-the-badge&logo=python)](https://pypi.org/project/carbone-sdk)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/carboneio/carbone-sdk-node?style=for-the-badge)
 [![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg?style=for-the-badge)](./API-REFERENCE.md)
 
 
