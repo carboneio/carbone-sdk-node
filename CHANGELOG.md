@@ -1,3 +1,6 @@
+### v1.1.1
+  - Update default Carbone API to version 3
+
 ### v1.1.0
   - Throw an error when a relative path is passed to the `render` function. Only absolute path are accepted.
   - It is possible retry to render a report with the following 2 configurations:

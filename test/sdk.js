@@ -598,7 +598,7 @@ describe('Carbone SDK', () => {
           .post((uri) => uri.includes('render'))
           // eslint-disable-next-line no-unused-vars
           .reply(200, function(uri, requestBody) {
-            assert.strictEqual(this.req.headers['carbone-version'], '2');
+            assert.strictEqual(this.req.headers['carbone-version'], '3');
 
             return {
               success: true,
@@ -626,12 +626,12 @@ describe('Carbone SDK', () => {
       });
 
       it('should render a template with a specific version of carbone', (done) => {
-        sdk.setApiVersion(3);
+        sdk.setApiVersion(2);
         nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
           // eslint-disable-next-line no-unused-vars
           .reply(200, function(uri, requestBody) {
-            assert.strictEqual(this.req.headers['carbone-version'], 3);
+            assert.strictEqual(this.req.headers['carbone-version'], 2);
 
             return {
               success: true,

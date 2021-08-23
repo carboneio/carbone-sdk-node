@@ -1,6 +1,6 @@
 {
   "name": "carbone-sdk",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Carbone Render NodeJS SDK to generate reports easily (PDF, docx, xlsx, ods, odt, ...)",
   "main": "index.js",
   "directories": {
