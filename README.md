@@ -16,20 +16,16 @@ $ npm i --save carbone-sdk
 $ yarn add carbone-sdk
 ```
 
-To use it, you will need your API key you can find on `Carbone Account` in the [API access](https://account.carbone.io/#/account/api) menu.
-
-Once you have your API key, you can require the module.
-
-```js
-const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
-```
-
 ## Getting started
 
-Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render, add data.
+Try the following code to render a report in 10 seconds. Insert:
+* Your API key ([available on Carbone account](https://account.carbone.io/))
+* The absolute path to your template (created from your text editor)
+* The JSON data-set you want to inject inside the document
 
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+const path       = require('path');
 
 const options = {
   data: {
@@ -41,11 +37,15 @@ const options = {
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
-carboneSDK.render('/absolute/path/to/your/template', options, (err, buffer, filename) => {
+/** The template path must be absolute. Use the `path` module to get it. **/
+const templateAbsolutePath = path.join(__dirname, 'path', 'to', 'template.odt')
+/** Generate the document **/
+carboneSDK.render(templateAbsolutePath, options, (err, buffer, filename) => {
 
 })
 ```
 Note: Each request executed in the SDK is retry once if the first reponse request is a `ECONNRESET` errors
+
 ## API
 
 ### Carbone version
