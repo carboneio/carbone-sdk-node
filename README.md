@@ -48,7 +48,7 @@ Note: Each request executed in the SDK is retry once if the first reponse reques
 
 ## API
 
-### Carbone version
+### Change Carbone version
 
 To choose a specific version of Carbone Render API, use the following function.
 It is only possible to set a major version of Carbone.
