@@ -38,6 +38,7 @@ const data = {
     // Add your data here
   },
   convertTo: 'pdf'
+  /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
 // Create a write stream with the report name as parameter.
@@ -64,7 +65,7 @@ You can set the version of Carbone you want to use. With this, you can upgrade y
 To set the version, call this function:
 
 ```js
-carbone.setApiVersion(2) // Set the version of carbone to 2
+carboneSDK.setApiVersion(3) // Set the version of carbone to 3
 ```
 
 *Note:* You can only set the major version of carbone.
@@ -80,7 +81,9 @@ const absolutePath = path.join(__dirname, 'path', 'to', 'file.odt')
 ### Add a template
 
 ```js
-carbone.addTemplate('/absolute/path/to/your/file', (err, templateId) => {
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+carboneSDK.addTemplate('/absolute/path/to/your/file', (err, templateId) => {
 
 })
 ```
@@ -90,7 +93,9 @@ carbone.addTemplate('/absolute/path/to/your/file', (err, templateId) => {
 You can add multiple times the same template and get different `templateId` thanks to the payload.
 
 ```js
-carbone.addTemplate('/absolute/path/to/your/file', 'YOUR-PAYLOAD', (err, templateId) => {
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+carboneSDK.addTemplate('/absolute/path/to/your/file', 'YOUR-PAYLOAD', (err, templateId) => {
 
 })
 ```
@@ -98,7 +103,9 @@ carbone.addTemplate('/absolute/path/to/your/file', 'YOUR-PAYLOAD', (err, templat
 ### Get a template
 
 ```js
-carbone.getTemplate('templateId', (err, content) => {
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+carboneSDK.getTemplate('templateId', (err, content) => {
 
 })
 ```
@@ -109,7 +116,7 @@ You can also get a template with stream.
 
 ```js
 const writeStream = fs.createWriteStream('tmp.odt')
-const carboneStream = carbone.getTemplate('templateId')
+const carboneStream = carboneSDK.getTemplate('templateId')
 
 carboneStream.on('error', (err) => {
 
@@ -117,7 +124,7 @@ carboneStream.on('error', (err) => {
 
 writeStream.on('close', () => {
   // Get the real filename here
-  let filename = carbone.getFilename(carboneStream)
+  let filename = carboneSDK.getFilename(carboneStream)
 })
 
 carboneStream.pipe(writeStream)
@@ -128,7 +135,9 @@ carboneStream.pipe(writeStream)
 ### Delete a template
 
 ```js
-carbone.delTemplate('templateId', (err) => {
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+carboneSDK.delTemplate('templateId', (err) => {
 
 })
 ```
@@ -140,9 +149,15 @@ There are multiple ways to render a template.
 The first way is to use the `templateId`.
 
 ```js
-const dataToRender = {}
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-carbone.render('templateId', dataToRender, (err, buffer, filename) => {
+const options = {
+  data: { /** YOUR DATA HERE **/ },
+  convertTo: "pdf"
+  /** List of other options: https://carbone.io/api-reference.html#render-reports **/
+}
+
+carboneSDK.render('templateId', options, (err, buffer, filename) => {
 
 })
 ```
@@ -150,11 +165,13 @@ carbone.render('templateId', dataToRender, (err, buffer, filename) => {
 Or if you don't want the buffer but juste the link to download it later, you can set the conf like this.
 
 ```js
-carbone.setOptions({
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+carboneSDK.setOptions({
   isReturningBuffer: false
 })
 
-carbone.render('templateId', dataToRender, (err, downloadLink, filename) => {
+carboneSDK.render('templateId', dataToRender, (err, downloadLink, filename) => {
 
 })
 ```
@@ -162,9 +179,11 @@ carbone.render('templateId', dataToRender, (err, downloadLink, filename) => {
 The second way is to use the path of your local file. Using this method is the most safety way to avoid errors. Carbone engine deleted files which has not been used since a while. By using this method, if your file has been deleted, the SDK will automatically upload it again and return you the result.
 
 ```js
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
 const dataToRender = {}
 
-carbone.render('/absolute/path/to/your/file', dataToRender, (err, buffer, filename) => {
+carboneSDK.render('/absolute/path/to/your/file', dataToRender, (err, buffer, filename) => {
 
 })
 ```
@@ -172,11 +191,15 @@ carbone.render('/absolute/path/to/your/file', dataToRender, (err, buffer, filena
 **WARNING:** If you want to set a payload, it must be located in the data object
 
 ```js
-const dataToRender = {
-  payload: 'MY-PAYLOAD'
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+const options = {
+  data: { /** YOUR DATA HERE **/ },
+  convertTo: "pdf"
+  /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
-carbone.render('/absolute/path/to/your/file', dataToRender, (err, buffer, filename) => {
+carboneSDK.render('/absolute/path/to/your/file', options, (err, buffer, filename) => {
 
 })
 ```
@@ -184,10 +207,16 @@ carbone.render('/absolute/path/to/your/file', dataToRender, (err, buffer, filena
 You can also render you template and get result with a stream.
 
 ```js
-const dataToRender = {}
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+const options = {
+  data: { /** YOUR DATA HERE **/ },
+  convertTo: "pdf"
+  /** List of other options: https://carbone.io/api-reference.html#render-reports **/
+}
 
 const writeStream = fs.createWriteStream('result.pdf')
-const sdkStream = carbone.render('/absolute/path/to/your/file', dataToRender)
+const sdkStream = carboneSDK.render('/absolute/path/to/your/file', options)
 
 sdkStream.on('error', (err) => {
 
@@ -195,7 +224,7 @@ sdkStream.on('error', (err) => {
 
 writeStream.on('close', () => {
   // Here you can get the real filename
-  let filename = carbone.getFilename(sdkStream)
+  let filename = carboneSDK.getFilename(sdkStream)
 })
 
 sdkStream.pipe(writeStream)
@@ -208,7 +237,9 @@ All function of the SDK are also available with promise.
 ### Add a template
 
 ```js
-carbone.addTemplatePromise('/absolute/path/to/your/file', 'OPTIONAL-PAYLOAD')
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+carboneSDK.addTemplatePromise('/absolute/path/to/your/file', 'OPTIONAL-PAYLOAD')
 .then(templateId => {
 
 })
@@ -220,7 +251,9 @@ carbone.addTemplatePromise('/absolute/path/to/your/file', 'OPTIONAL-PAYLOAD')
 ### Get a template
 
 ```js
-carbone.getTemplatePromise('templateId')
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+carboneSDK.getTemplatePromise('templateId')
 .then(content => {
 
 })
@@ -232,7 +265,9 @@ carbone.getTemplatePromise('templateId')
 ### Delete a template
 
 ```js
-carbone.delTemplatePromise('templateId', 'OPTIONAL-PAYLOAD')
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+
+carboneSDK.delTemplatePromise('templateId', 'OPTIONAL-PAYLOAD')
 .then(templateId => {
 
 })
@@ -244,9 +279,15 @@ carbone.delTemplatePromise('templateId', 'OPTIONAL-PAYLOAD')
 ### Render a template
 
 ```js
-const dataToRender = {}
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-carbone.renderPromise('/absolute/path/to/your/file', dataToRender)
+const options = {
+  data: { /** YOUR DATA HERE **/ },
+  convertTo: "pdf"
+  /** List of other options: https://carbone.io/api-reference.html#render-reports **/
+}
+
+carboneSDK.renderPromise('/absolute/path/to/your/file', options)
 .then(result => {
   // result.content contains the rendered file
   // result.filename containes the rendered filename
