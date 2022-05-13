@@ -214,7 +214,7 @@ All function of the SDK are also available with promise.
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-carboneSDK.addTemplatePromise('/absolute/path/to/your/file', 'OPTIONAL-PAYLOAD')
+carboneSDK.addTemplatePromise('/absolute/path/to/your/template', 'OPTIONAL-PAYLOAD')
 .then(templateId => {
 
 })
@@ -262,7 +262,7 @@ const options = {
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
-carboneSDK.renderPromise('/absolute/path/to/your/file', options)
+carboneSDK.renderPromise('/absolute/path/to/your/template', options)
 .then(result => {
   // result.content contains the rendered file
   // result.filename containes the rendered filename
