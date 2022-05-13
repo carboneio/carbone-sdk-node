@@ -24,8 +24,6 @@ Once you have your API key, you can require the module.
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 ```
 
-*INFO: Each request executed in the SDK is retry once if the first reponse request is a `ECONNRESET` error*
-
 ## Getting started
 
 Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render, add data.
@@ -47,45 +45,34 @@ carboneSDK.render('/absolute/path/to/your/template', options, (err, buffer, file
 
 })
 ```
-
-## Carbone version
-
-You can set the version of Carbone you want to use. With this, you can upgrade your carbone version when you are ready.
-
-To set the version, call this function:
-
-```js
-carboneSDK.setApiVersion(3) // Set the version of carbone to 3
-```
-
-*Note:* You can only set the major version of carbone.
-
+Note: Each request executed in the SDK is retry once if the first reponse request is a `ECONNRESET` errors
 ## API
 
-All path you can give to carbone must be absolute path. Use the `path` module to get it.
+### Carbone version
 
+To choose a specific version of Carbone Render API, use the following function.
+It is only possible to set a major version of Carbone.
 ```js
-const absolutePath = path.join(__dirname, 'path', 'to', 'file.odt')
+// Set the version of carbone to 3
+carboneSDK.setApiVersion(3)
 ```
+
 
 ### Add a template
 
-```js
-const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
-
-carboneSDK.addTemplate('/absolute/path/to/your/file', (err, templateId) => {
-
-})
-```
-
-**WARNING:** The file path must be absolute.
-
-You can add multiple times the same template and get different `templateId` thanks to the payload.
+When a template is uploaded, a `Template ID` is created which is the unique identifier for the template. If you upload the same template twice, you will have the same Template ID.
+From the template you can:
+* Generate a report
+* Delete a template
+* Download a template
 
 ```js
-const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY');
+const path       = require('path');
 
-carboneSDK.addTemplate('/absolute/path/to/your/file', 'YOUR-PAYLOAD', (err, templateId) => {
+/** The template path must be absolute. Use the `path` module to get it. **/
+const templateAbsolutePath = path.join(__dirname, 'path', 'to', 'template.odt')
+carboneSDK.addTemplate(templateAbsolutePath, (err, templateId) => {
 
 })
 ```
@@ -95,12 +82,10 @@ carboneSDK.addTemplate('/absolute/path/to/your/file', 'YOUR-PAYLOAD', (err, temp
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-carboneSDK.getTemplate('templateId', (err, content) => {
-
+carboneSDK.getTemplate('templateId', (err, fileContentAsBuffer) => {
+  /** Note: The content returned is a buffer and not a string **/
 })
 ```
-
-**WARNING:** The content returned is a buffer and not a string
 
 You can also get a template with stream.
 
@@ -136,7 +121,7 @@ carboneSDK.delTemplate('templateId', (err) => {
 
 There are multiple ways to render a template.
 
-The first way is to use the `templateId`.
+The first solution is to use a `templateId` (previously created from the method "addTemplate").
 
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
@@ -152,7 +137,7 @@ carboneSDK.render('templateId', options, (err, buffer, filename) => {
 })
 ```
 
-Or if you don't want the buffer but juste the link to download it later, you can set the conf like this.
+Or if you don't want the buffer but juste the link to download it later, you can set the options `isReturningBuffer: false` to the SDK.
 
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
@@ -172,7 +157,10 @@ carboneSDK.render('templateId', options, (err, downloadLink, filename) => {
 })
 ```
 
-The second way is to use the path of your local file. Using this method is the most safety way to avoid errors. Carbone engine deleted files which has not been used since a while. By using this method, if your file has been deleted, the SDK will automatically upload it again and return you the result.
+The second solution (and easiest one) is to write the path of your local file, not the template ID. By using this method, if your template does not exist or has been deleted, the SDK will automatically:
+* upload the template
+* generate the report
+* download the report as Buffer
 
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
@@ -187,27 +175,10 @@ const options = {
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
-carboneSDK.render('/absolute/path/to/your/file', options, (err, buffer, filename) => {
+carboneSDK.render('/absolute/path/to/your/template', options, (err, buffer, filename) => {
 
 })
 ```
-
-**WARNING:** If you want to set a payload, it must be located in the data object
-
-```js
-const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
-
-const options = {
-  data: { /** YOUR DATA HERE **/ },
-  convertTo: "pdf"
-  /** List of other options: https://carbone.io/api-reference.html#render-reports **/
-}
-
-carboneSDK.render('/absolute/path/to/your/file', options, (err, buffer, filename) => {
-
-})
-```
-
 You can also render you template and get result with a stream.
 
 ```js
@@ -220,7 +191,7 @@ const options = {
 }
 
 const writeStream = fs.createWriteStream('result.pdf')
-const sdkStream = carboneSDK.render('/absolute/path/to/your/file', options)
+const sdkStream = carboneSDK.render('/absolute/path/to/your/template', options)
 
 sdkStream.on('error', (err) => {
 
