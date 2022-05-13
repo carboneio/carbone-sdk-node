@@ -31,31 +31,21 @@ const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render, add data.
 
 ```js
-const carboneSDK = require('carbone-sdk')('YOUR-API-KEY');
+const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-const data = {
+const options = {
   data: {
-    // Add your data here
+    /** YOUR DATA HERE **/
+    firstname: "John",
+    lastname:  "Wick"
   },
-  convertTo: 'pdf'
+  convertTo: "pdf"
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
-// Create a write stream with the report name as parameter.
-const writeStream = fs.createWriteStream(path.join(__dirname, 'report.odt'))
-// Pass the template path as first parameter, in this example 'test.odt' is the template.
-// Pass the data object as second parameter.
-const carboneStream = carboneSDK.render(path.join(__dirname, 'test', 'datasets', 'test.odt'), data)
+carboneSDK.render('/absolute/path/to/your/template', options, (err, buffer, filename) => {
 
-carboneStream.on('error', (err) => {
-  console.error(err)
 })
-
-writeStream.on('close', () => {
-  console.log('File rendered')
-})
-
-carboneStream.pipe(writeStream)
 ```
 
 ## Carbone version
@@ -167,11 +157,17 @@ Or if you don't want the buffer but juste the link to download it later, you can
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
+const options = {
+  data: { /** YOUR DATA HERE **/ },
+  convertTo: "pdf"
+  /** List of other options: https://carbone.io/api-reference.html#render-reports **/
+}
+
 carboneSDK.setOptions({
   isReturningBuffer: false
 })
 
-carboneSDK.render('templateId', dataToRender, (err, downloadLink, filename) => {
+carboneSDK.render('templateId', options, (err, downloadLink, filename) => {
 
 })
 ```
@@ -181,9 +177,17 @@ The second way is to use the path of your local file. Using this method is the m
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-const dataToRender = {}
+const options = {
+  data: {
+    /** YOUR DATA HERE **/
+    firstname: "John",
+    lastname:  "Wick"
+  },
+  convertTo: "pdf"
+  /** List of other options: https://carbone.io/api-reference.html#render-reports **/
+}
 
-carboneSDK.render('/absolute/path/to/your/file', dataToRender, (err, buffer, filename) => {
+carboneSDK.render('/absolute/path/to/your/file', options, (err, buffer, filename) => {
 
 })
 ```
