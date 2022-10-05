@@ -1,3 +1,14 @@
+### v1.2.0
+  - The SDK request by default the latest version `v4.X.X` of Carbone Cloud API
+  - Set requests header thanks to:
+    ```
+    sdk.setOptions({
+      headers: {
+        'carbone-template-delete-after': 86400
+      }
+    })
+    ```
+
 ### v1.1.1
   - Update default Carbone API to version 3
 

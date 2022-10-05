@@ -9,9 +9,14 @@ const CARBONE_URL = 'https://render.carbone.io/'
 
 describe('Carbone SDK', () => {
   describe('Add template', () => {
-    it('should add a template', (done) => {
-      nock(CARBONE_URL)
-        .post((uri) => uri.includes('template'))
+    it('should add a persistant template', (done) => {
+      nock(CARBONE_URL,
+        {
+          badheaders: ['carbone-template-delete-after'],
+        })
+        .post((uri) => {
+          return uri.includes('template')
+        })
         .reply(200, {
           success: true,
           data: {
@@ -22,6 +27,39 @@ describe('Carbone SDK', () => {
       sdk.addTemplate(path.join(__dirname, 'datasets', 'test.odt'), 'toto', (err, templateId) => {
         assert.strictEqual(err, null);
         assert.strictEqual(templateId, 'fileTemplateId');
+        done();
+      });
+    });
+
+    it('should add a non persistant template', (done) => {
+      sdk.setOptions({
+        headers: {
+          'carbone-template-delete-after': 86400
+        }
+      })
+
+      nock(CARBONE_URL,
+        {
+          reqheaders: {
+            'carbone-template-delete-after': headerValue => headerValue > 0,
+          },
+        })
+        .post((uri) => {
+          return uri.includes('template')
+        })
+        .reply(200, {
+          success: true,
+          data: {
+            templateId: 'fileTemplateId'
+          }
+        });
+
+      sdk.addTemplate(path.join(__dirname, 'datasets', 'test.odt'), 'toto', (err, templateId) => {
+        assert.strictEqual(err, null);
+        assert.strictEqual(templateId, 'fileTemplateId');
+        sdk.setOptions({
+          headers: {}
+        })
         done();
       });
     });
@@ -598,7 +636,8 @@ describe('Carbone SDK', () => {
           .post((uri) => uri.includes('render'))
           // eslint-disable-next-line no-unused-vars
           .reply(200, function(uri, requestBody) {
-            assert.strictEqual(this.req.headers['carbone-version'], '3');
+
+            assert.strictEqual(this.req.headers['carbone-version'], '4');
 
             return {
               success: true,
@@ -1310,8 +1349,12 @@ describe('Carbone SDK', () => {
 
   describe('Promise', () => {
     describe('Add template promise', () => {
-      it('should add a template', (done) => {
-        nock(CARBONE_URL)
+      it('should add a persistant template', (done) => {
+        nock(CARBONE_URL,
+            {
+              badheaders: ['carbone-template-delete-after'],
+            }
+          )
           .post((uri) => uri.includes('template'))
           .reply(200, {
             success: true,
@@ -1322,6 +1365,39 @@ describe('Carbone SDK', () => {
 
         sdk.addTemplatePromise(path.join(__dirname, 'datasets', 'test.odt'), 'toto').then((templateId) => {
           assert.strictEqual(templateId, 'fileTemplateId');
+          done();
+        })
+        .catch((err) => {
+          assert.strictEqual(err, null);
+        });
+      });
+
+      it('should add a non persistant template', (done) => {
+        sdk.setOptions({
+          headers: {
+            'carbone-template-delete-after': 86400
+          }
+        })
+
+        nock(CARBONE_URL, {
+            reqheaders: {
+              'carbone-template-delete-after': headerValue => headerValue > 0,
+            },
+          })
+          .post((uri) => uri.includes('template'))
+          .reply(200, {
+            success: true,
+            data: {
+              templateId: 'fileTemplateId'
+            }
+          });
+
+        sdk.addTemplatePromise(path.join(__dirname, 'datasets', 'test.odt'), 'toto').then((templateId) => {
+          assert.strictEqual(templateId, 'fileTemplateId');
+          sdk.setOptions({
+            headers: {}
+          })
+
           done();
         })
         .catch((err) => {

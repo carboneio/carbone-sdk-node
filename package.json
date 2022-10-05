@@ -1,6 +1,6 @@
 {
   "name": "carbone-sdk",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Carbone Render NodeJS SDK to generate reports easily (PDF, docx, xlsx, ods, odt, ...)",
   "main": "index.js",
   "directories": {
@@ -25,6 +25,9 @@
   "repository": {
     "type": "git",
     "url": "git@git.ideolys.com:ideolys/carbone-sdk.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   },
   "author": "",
   "license": "Apache-2.0"

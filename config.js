@@ -5,7 +5,7 @@ let _config = {
   retriesIntervalOnError: 0 // unit ms
 };
 
-let _version = '3';
+let _version = '4';
 
 module.exports = {
   config: _config,

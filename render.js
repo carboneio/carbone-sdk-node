@@ -77,7 +77,8 @@ const renderFunctions = {
       headers: {
         authorization: `Bearer ${_apiKey}`,
         'carbone-version': sdkConfig.getVersion(),
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        ...config.headers
       },
       json: false, // if true, simple-get tries to Parse the response
       body: JSON.stringify(data)

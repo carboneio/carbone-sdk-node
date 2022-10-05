@@ -1,9 +1,9 @@
-# Carbone Render Node SDK
+# Carbone Cloud API Node SDK
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/carboneio/carbone-sdk-node?style=for-the-badge)
 [![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg?style=for-the-badge)](./API-REFERENCE.md)
 
 
-The SDK to use [Carbone render](https://carbone.io) API easily.
+The SDK to use [Carbone Cloud API](https://carbone.io) easily.
 
 > Carbone is a report generator (PDF, DOCX, XLSX, ODT, PPTX, ODS, XML, CSV...) using templates and JSON data.
 [Learn more about the Carbone ecosystem](https://carbone.io/documentation.html).
@@ -18,7 +18,7 @@ $ yarn add carbone-sdk
 
 ## Getting started
 
-Try the following code to render a report in 10 seconds. Insert:
+Try the following code to generate a report in 10 seconds. Insert:
 * Your API key ([available on Carbone account](https://account.carbone.io/))
 * The absolute path to your template (created from your text editor)
 * The JSON data-set you want to inject inside the document

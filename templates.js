@@ -41,7 +41,8 @@ const templateFunctions = {
       headers: {
         authorization: `Bearer ${_apiKey}`,
         "content-type": form.getHeaders()['content-type'],
-        'carbone-version': sdkConfig.getVersion()
+        'carbone-version': sdkConfig.getVersion(),
+        ...config.headers
       }
     }, (err, response, body) => {
       if (err) {
@@ -70,7 +71,8 @@ const templateFunctions = {
       url: `${config.carboneUrl}template/${templateId}`,
       headers: {
         authorization: `Bearer ${_apiKey}`,
-        'carbone-version': sdkConfig.getVersion()
+        'carbone-version': sdkConfig.getVersion(),
+        ...config.headers
       }
     }, (err, response, body) => {
       if (err) {
@@ -102,7 +104,8 @@ const templateFunctions = {
       url: `${config.carboneUrl}template/${templateId}`,
       headers: {
         authorization: `Bearer ${_apiKey}`,
-        'carbone-version': sdkConfig.getVersion()
+        'carbone-version': sdkConfig.getVersion(),
+        ...config.headers
       }
     }, function(err, response) {
       if (err) {
