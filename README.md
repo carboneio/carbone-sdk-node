@@ -53,10 +53,22 @@ Note: Each request executed in the SDK is retry once if the first reponse reques
 To choose a specific version of Carbone Render API, use the following function.
 It is only possible to set a major version of Carbone.
 ```js
-// Set the version of carbone to 3
-carboneSDK.setApiVersion(3)
+// Set the version of carbone to 4
+carboneSDK.setApiVersion(4)
 ```
 
+### Pass headers
+
+Initialise a global header that will be set for each API request.
+
+```js
+sdk.setOptions({
+  headers: {
+    'carbone-template-delete-after': 86400
+    'carbone-webhook-url': 'https://...'
+  }
+})
+```
 
 ### Add a template
 
