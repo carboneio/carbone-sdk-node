@@ -1,3 +1,7 @@
+### v1.3.0
+  - Fixed: When generating a report with `render` or `renderPromise`, the filename does not include `.undefined`
+  - Fixed: The default API URL is now `https://api.carbone.io`
+
 ### v1.2.0
   - The SDK request by default the latest version `v4.X.X` of Carbone Cloud API
   - Set requests header thanks to:

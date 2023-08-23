@@ -1,5 +1,5 @@
 let _config = {
-  carboneUrl: 'https://render.carbone.io/',
+  carboneUrl: 'https://api.carbone.io/',
   isReturningBuffer: true,
   retriesOnError: 1, // number of retries
   retriesIntervalOnError: 0 // unit ms

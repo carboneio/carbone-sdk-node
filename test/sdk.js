@@ -5,7 +5,7 @@ const fs = require('fs');
 // eslint-disable-next-line node/no-unpublished-require
 const nock = require('nock')
 
-const CARBONE_URL = 'https://render.carbone.io/'
+const CARBONE_URL = 'https://api.carbone.io/'
 
 describe('Carbone SDK', () => {
   describe('Add template', () => {
@@ -545,8 +545,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -573,8 +572,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -643,8 +641,7 @@ describe('Carbone SDK', () => {
               success: true,
               error: null,
               data: {
-                renderId: 'renderId',
-                inputFileExtension: 'pdf'
+                renderId: 'renderId'
               }
             }
           })
@@ -676,8 +673,7 @@ describe('Carbone SDK', () => {
               success: true,
               error: null,
               data: {
-                renderId: 'renderId',
-                inputFileExtension: 'pdf'
+                renderId: 'renderId'
               }
             }
           })
@@ -716,8 +712,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -766,8 +761,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -813,14 +807,13 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId.pdf'
             }
           });
 
         sdk.render(TEMPLATE_ID, {}, (err, buffer, filename) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(buffer, 'https://render.carbone.io/render/renderId');
+          assert.strictEqual(buffer, 'https://api.carbone.io/render/renderId.pdf');
           assert.strictEqual(filename, 'renderId.pdf');
           done();
         });
@@ -901,8 +894,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -922,8 +914,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -943,8 +934,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -964,8 +954,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -994,8 +983,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -1030,8 +1018,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -1123,8 +1110,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -1148,8 +1134,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -1173,8 +1158,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -1201,8 +1185,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -1253,8 +1236,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -1307,8 +1289,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))
@@ -1495,8 +1476,7 @@ describe('Carbone SDK', () => {
             success: true,
             error: null,
             data: {
-              renderId: 'renderId',
-              inputFileExtension: 'pdf'
+              renderId: 'renderId'
             }
           })
           .get((uri) => uri.includes('render'))

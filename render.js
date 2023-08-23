@@ -115,11 +115,10 @@ const renderFunctions = {
           return utils.returnStreamOrCallbackError(new Error('Invalid data'), stream, callback);
         }
 
-        let filename = data.renderId + '.' + data.inputFileExtension;
-
+        let filename = data.renderId;
         // If user gave a callback and wants a link, return it
         if (callback !== undefined && !config.isReturningBuffer) {
-          return callback(null, `https://render.carbone.io/render/${data.renderId}`, filename);
+          return callback(null, `https://api.carbone.io/render/${data.renderId}`, filename);
         }
         return renderFunctions._getRenderedReport(data.renderId, stream, callback);
       });

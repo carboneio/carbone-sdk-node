@@ -41,7 +41,13 @@ const options = {
 const templateAbsolutePath = path.join(__dirname, 'path', 'to', 'template.odt')
 /** Generate the document **/
 carboneSDK.render(templateAbsolutePath, options, (err, buffer, filename) => {
-
+/**
+ * ✅ Document generated, returned values:
+ * - "buffer": generated document as Buffer
+ * - "Filename": document name as String
+ * 
+ * Now you can save the file or Stream it!
+ **/
 })
 ```
 Note: Each request executed in the SDK is retry once if the first reponse request is a `ECONNRESET` errors
