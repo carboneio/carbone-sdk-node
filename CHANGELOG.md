@@ -1,3 +1,6 @@
+### v1.3.1
+  - Update dependencies
+
 ### v1.3.0
   - Fixed: When generating a report with `render` or `renderPromise`, the filename does not include `.undefined`
   - Fixed: The default API URL is now `https://api.carbone.io`
