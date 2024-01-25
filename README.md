@@ -63,18 +63,21 @@ It is only possible to set a major version of Carbone.
 carboneSDK.setApiVersion(4)
 ```
 
-### Pass headers
-
-Initialise a global header that will be set for each API request.
+### Update default options / headers
 
 ```js
-sdk.setOptions({
+carboneSDK.setOptions({
+  // Edit headers for all requests
   headers: {
     'carbone-template-delete-after': 86400
     'carbone-webhook-url': 'https://...'
-  }
+  },
+  // Edit the default Carbone URL (https://api.carbone.io/) for On-Premise
+  // WARNING: Add a trailing slash to the end of your URL
+  carboneUrl: 'https://your-on-premise-carbone-url:4000/'
 })
 ```
+
 
 ### Add a template
 
