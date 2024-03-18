@@ -27,7 +27,7 @@ Try the following code to generate a report in 10 seconds. Insert:
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 const path       = require('path');
 
-const options = {
+const body = {
   data: {
     /** YOUR DATA HERE **/
     firstname: "John",
@@ -40,7 +40,7 @@ const options = {
 /** The template path must be absolute. Use the `path` module to get it. **/
 const templateAbsolutePath = path.join(__dirname, 'path', 'to', 'template.odt')
 /** Generate the document **/
-carboneSDK.render(templateAbsolutePath, options, (err, buffer, filename) => {
+carboneSDK.render(templateAbsolutePath, body, (err, buffer, filename) => {
 /**
  * ✅ Document generated, returned values:
  * - "buffer": generated document as Buffer
@@ -67,10 +67,9 @@ carboneSDK.setApiVersion(4)
 
 ```js
 carboneSDK.setOptions({
-  // Edit headers for all requests
+  // Edit headers for all requests (default)
   headers: {
     'carbone-template-delete-after': 86400
-    'carbone-webhook-url': 'https://...'
   },
   // Edit the default Carbone URL (https://api.carbone.io/) for On-Premise
   // WARNING: Add a trailing slash to the end of your URL
@@ -147,23 +146,23 @@ The first solution is to use a `templateId` (previously created from the method 
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-const options = {
+const body = {
   data: { /** YOUR DATA HERE **/ },
   convertTo: "pdf"
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
-carboneSDK.render('templateId', options, (err, buffer, filename) => {
+carboneSDK.render('templateId', body, (err, buffer, filename) => {
 
 })
 ```
 
-Or if you don't want the buffer but juste the link to download it later, you can set the options `isReturningBuffer: false` to the SDK.
+Or if you don't want the buffer but just the link to download it later, you can set the options `isReturningBuffer: false` to the SDK.
 
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-const options = {
+const body = {
   data: { /** YOUR DATA HERE **/ },
   convertTo: "pdf"
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
@@ -173,7 +172,7 @@ carboneSDK.setOptions({
   isReturningBuffer: false
 })
 
-carboneSDK.render('templateId', options, (err, downloadLink, filename) => {
+carboneSDK.render('templateId', body, (err, downloadLink, filename) => {
 
 })
 ```
@@ -186,7 +185,7 @@ The second solution (and easiest one) is to write the path of your local file, n
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-const options = {
+const body = {
   data: {
     /** YOUR DATA HERE **/
     firstname: "John",
@@ -196,7 +195,7 @@ const options = {
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
-carboneSDK.render('/absolute/path/to/your/template', options, (err, buffer, filename) => {
+carboneSDK.render('/absolute/path/to/your/template', body, (err, buffer, filename) => {
 
 })
 ```
@@ -205,14 +204,14 @@ You can also render you template and get result with a stream.
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-const options = {
+const body = {
   data: { /** YOUR DATA HERE **/ },
   convertTo: "pdf"
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
 const writeStream = fs.createWriteStream('result.pdf')
-const sdkStream = carboneSDK.render('/absolute/path/to/your/template', options)
+const sdkStream = carboneSDK.render('/absolute/path/to/your/template', body)
 
 sdkStream.on('error', (err) => {
 
@@ -225,6 +224,23 @@ writeStream.on('close', () => {
 
 sdkStream.pipe(writeStream)
 ```
+
+
+You can also overwrite headers with an optional object. Here is an example to use Carbone webhooks: 
+
+```js
+
+const options = {
+  headers = {
+    'carbone-webhook-url': 'https://...'
+  }
+}
+
+carboneSDK.render('templateId', body, options, (err, buffer, filename) => {
+
+})
+```
+
 
 ## API Promise
 
@@ -277,13 +293,20 @@ carboneSDK.delTemplatePromise('templateId', 'OPTIONAL-PAYLOAD')
 ```js
 const carboneSDK = require('carbone-sdk')('YOUR-API-KEY')
 
-const options = {
+const body = {
   data: { /** YOUR DATA HERE **/ },
   convertTo: "pdf"
   /** List of other options: https://carbone.io/api-reference.html#render-reports **/
 }
 
-carboneSDK.renderPromise('/absolute/path/to/your/template', options)
+// You can also overwrite headers with an optional object. Here is an example to use Carbone webhooks:
+const options = {
+  headers : {
+    'carbone-webhook-url': 'https://...' // if you 
+  }
+}
+
+carboneSDK.renderPromise('/absolute/path/to/your/template', body [, options])
 .then(result => {
   // result.content contains the rendered file
   // result.filename containes the rendered filename

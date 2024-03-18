@@ -1,3 +1,8 @@
+### v1.4.0
+  - Add an optional object `options` to overwrite request headers when generating the report
+    `carboneSDK.render(pathOrId, body, options, callback)` 
+    `carboneSDK.renderPromise(pathOrId, data, options)` 
+
 ### v1.3.1
   - Update dependencies
 

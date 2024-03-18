@@ -39,9 +39,14 @@ const renderFunctions = {
    * Render a template
    * @param {String} pathOrId Template path or template ID
    * @param {Object} data Data to send to carbone render
+   * @param {Object} [options] optional object to overwrite global options: { "headers" : { "carbone-webhook-url" : "https://" }
    * @param {Function} callback
    */
-  render: function (pathOrId, data, callback) {
+  render: function (pathOrId, data, options, callback) {
+    if (options instanceof Function) {
+      callback = options;
+      options = {};
+    }
     // Create stream if no callback is passed in parameter
     let stream = StreamAnswer();
 
@@ -51,10 +56,10 @@ const renderFunctions = {
           return utils.returnStreamOrCallbackError(err, stream, callback);
         }
 
-        renderFunctions._renderWithTemplateId(hash, pathOrId, data, stream, callback);
+        renderFunctions._renderWithTemplateId(hash, pathOrId, data, stream, callback, options);
       });
     } else if (pathOrId.length === 64) {
-      renderFunctions._renderWithTemplateId(pathOrId, null, data, stream, callback);
+      renderFunctions._renderWithTemplateId(pathOrId, null, data, stream, callback, options);
     } else {
       return utils.returnStreamOrCallbackError(new Error('The path must be an absolute path'), stream, callback);
     }
@@ -68,9 +73,10 @@ const renderFunctions = {
    * @param {Object} data Data to render with the template
    * @param {Stream} stream Stream response
    * @param {Function} callback
+   * @param {Object} options overwrite global options. Example : { headers : { carbone-webhook-url : 'https://' }
    * @param {Boolean} _retry Check if the request has already been retried
    */
-  _renderWithTemplateId: function (templateId, filePath, data, stream, callback, _retries = 0) {
+  _renderWithTemplateId: function (templateId, filePath, data, stream, callback, options = {}, _retries = 0) {
     get.concat({
       method: 'POST',
       url: `${config.carboneUrl}render/${templateId}`,
@@ -78,7 +84,8 @@ const renderFunctions = {
         authorization: `Bearer ${_apiKey}`,
         'carbone-version': sdkConfig.getVersion(),
         'content-type': 'application/json',
-        ...config.headers
+        ...config.headers,
+        ...options.headers
       },
       json: false, // if true, simple-get tries to Parse the response
       body: JSON.stringify(data)
@@ -88,7 +95,7 @@ const renderFunctions = {
           (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT' ||
            err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || err.code === 'EPIPE')) {
           return setTimeout(() => {
-            renderFunctions._renderWithTemplateId(templateId, filePath, data, stream, callback, _retries + 1);
+            renderFunctions._renderWithTemplateId(templateId, filePath, data, stream, callback, options, _retries + 1);
           }, config.retriesIntervalOnError);
         }
         return utils.returnStreamOrCallbackError(err, stream, callback);
@@ -102,7 +109,7 @@ const renderFunctions = {
             return utils.returnStreamOrCallbackError(err, stream, callback);
           }
 
-          renderFunctions._renderWithTemplateId(newTemplateId, filePath, data, stream, callback, _retries);
+          renderFunctions._renderWithTemplateId(newTemplateId, filePath, data, stream, callback, options, _retries);
         });
       }
 

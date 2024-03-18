@@ -58,10 +58,11 @@ const templatePromiseFunctions = {
    * Render a template
    * @param {String} pathOrId Template path or template ID
    * @param {Object} data Data to send to carbone render
+   * @param {Object} [options] optional object to overwrite global options: { "headers" : { "carbone-webhook-url" : "https://" }
    */
-  renderPromise: function (pathOrId, data) {
+  renderPromise: function (pathOrId, data, options) {
     return new Promise((resolve, reject) => {
-      renderFunction.render(pathOrId, data, (err, content, filename) => {
+      renderFunction.render(pathOrId, data, options, (err, content, filename) => {
         if (err) {
           return reject(err);
         }

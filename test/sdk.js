@@ -592,6 +592,37 @@ describe('Carbone SDK', () => {
         });
       });
 
+      it('should render template and overwrite headers for one request', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, function() {
+            assert.strictEqual(this.req.headers['carbone-version'], '3');
+            assert.strictEqual(this.req.headers['carbone-webhook-url'], 'https://localhost:3000');
+            return {
+              success: true,
+              error: null,
+              data: {
+                renderId: 'renderId'
+              }
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render(path.join(__dirname, 'datasets', 'test.odt'), { payload: 'myPayload' }, { headers : { 'carbone-webhook-url' : 'https://localhost:3000', 'carbone-version' : '3'} }, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(sdk._getCache().get(path.join(__dirname, 'datasets', 'test.odt') + 'myPayload'), '94cd9cc739a678d1bf94310f1e60e4beea1348ed163b65236c7fbd207c327000');
+          done();
+        });
+      });
+
       it('should return an error with callback if hash cannot be calculated', (done) => {
         // eslint-disable-next-line no-unused-vars
         sdk.render('/file/does/not/exist', {}, (err, buffer, filename) => {
@@ -1508,6 +1539,38 @@ describe('Carbone SDK', () => {
         .catch((err) => {
           assert.strictEqual(err.message, 'Request error');
           done();
+        });
+      });
+
+      it('should render template and overwrite headers for one request', (done) => {
+        nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, function() {
+            assert.strictEqual(this.req.headers['carbone-version'], '3');
+            assert.strictEqual(this.req.headers['carbone-webhook-url'], 'https://localhost:3000');
+            return {
+              success: true,
+              error: null,
+              data: {
+                renderId: 'renderId'
+              }
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.renderPromise(path.join(__dirname, 'datasets', 'test.odt'), {}, { headers : { 'carbone-webhook-url' : 'https://localhost:3000', 'carbone-version' : '3'} }).then((result) => {
+          assert.strictEqual(result.content.toString(), 'Hello I am the streamed file!\n');
+          assert.strictEqual(result.filename, 'tata.txt');
+          done();
+        })
+        .catch((err) => {
+          assert.strictEqual(err, null);
         });
       });
     });
