@@ -1,4 +1,7 @@
 const path = require('path');
+const URL  = require("url").URL;
+const get  = require('simple-get');
+const stream = require('stream');
 
 module.exports = {
   /**
@@ -76,5 +79,32 @@ module.exports = {
     }
 
     return stream.emit('error', error);
+  },
+  /**
+   * Verify if an URL is valid.
+   * @param {string} URL
+   * @returns 
+   */
+  validURL: (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  },
+  downloadFile: (url, callback) => {
+    get.concat({
+      url: url,
+      method: 'GET',
+      timeout : 10000
+    }, function (err, res, buffer) {
+      if (err) {
+        return callback(err);
+      } else  if (res.statusCode < 200 || res.statusCode >= 400) {
+        return callback(new Error(`Generate Document from a template URL failed: The download returned a ${res.statusCode} status code.`));
+      }
+      return callback(null, Buffer.from(buffer).toString('base64'));
+    })
   }
 }

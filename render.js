@@ -37,36 +37,49 @@ const renderFunctions = {
 
   /**
    * Render a template
-   * @param {String} pathOrId Template path or template ID
+   * @param {String} template Template ID, or Path, or URL, or Buffer
    * @param {Object} data Data to send to carbone render
    * @param {Object} [options] optional object to overwrite global options: { "headers" : { "carbone-webhook-url" : "https://" }
    * @param {Function} callback
    */
-  render: function (pathOrId, data, options, callback) {
+  render: function (template, data, options, callback) {
     if (options instanceof Function) {
       callback = options;
       options = {};
     }
     // Create stream if no callback is passed in parameter
     let stream = StreamAnswer();
-
-    if (utils.checkPathIsAbsolute(pathOrId)) {
-      renderFunctions._calculateHash(pathOrId, data.payload, (err, hash) => {
+    
+    if (Buffer.isBuffer(template) === true) {
+      data.template = Buffer.from(template).toString('base64');
+      return renderFunctions._renderWithTemplateId('template', null, data, stream, callback, options);
+    } else if (template?.startsWith('https://')) {
+      if (utils.validURL(template) === false) {
+        return utils.returnStreamOrCallbackError(new Error('The template URL is not valid'), stream, callback);
+      }
+      return utils.downloadFile(template, function (err, templateAsBase64) {
+        if (err) {
+          return utils.returnStreamOrCallbackError(err, stream, callback);
+        }
+        data.template = templateAsBase64;
+        return renderFunctions._renderWithTemplateId('template', null, data, stream, callback, options);
+      })
+    } else if (utils.checkPathIsAbsolute(template)) {
+      renderFunctions._calculateHash(template, data.payload, (err, hash) => {
         if (err) {
           return utils.returnStreamOrCallbackError(err, stream, callback);
         }
 
-        renderFunctions._renderWithTemplateId(hash, pathOrId, data, stream, callback, options);
+        renderFunctions._renderWithTemplateId(hash, template, data, stream, callback, options);
       });
-    } else if (pathOrId.length === 64) {
-      renderFunctions._renderWithTemplateId(pathOrId, null, data, stream, callback, options);
+    } else if (template.length === 64) {
+      renderFunctions._renderWithTemplateId(template, null, data, stream, callback, options);
     } else {
       return utils.returnStreamOrCallbackError(new Error('The path must be an absolute path'), stream, callback);
     }
 
     return stream;
   },
-
   /**
    * Render a template with the template ID
    * @param {String} templateId Template ID
