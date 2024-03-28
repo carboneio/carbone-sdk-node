@@ -2,8 +2,9 @@ const path = require('path');
 const URL  = require("url").URL;
 const get  = require('simple-get');
 const stream = require('stream');
+const { promisify } = require('util');
 
-module.exports = {
+const _utils = {
   /**
    * Return the absolute path of the file
    * @param {String} localPath User filepath
@@ -93,7 +94,10 @@ module.exports = {
       return false;
     }
   },
-  downloadFile: (url, callback) => {
+  downloadFile: promisify((url, callback) => {
+    if (_utils.validURL(url) === false) {
+      return callback(new Error('The template URL is not valid'));
+    }
     get.concat({
       url: url,
       method: 'GET',
@@ -104,7 +108,20 @@ module.exports = {
       } else  if (res.statusCode < 200 || res.statusCode >= 400) {
         return callback(new Error(`Generate Document from a template URL failed: The download returned a ${res.statusCode} status code.`));
       }
-      return callback(null, Buffer.from(buffer).toString('base64'));
+      return callback(null, buffer);
     })
+  }),
+  bufferToBase64: (buffer) => {
+    return Buffer.from(buffer).toString('base64')
+  },
+  bufferToReadStream: (buffer) => {
+    return new stream.Readable({
+      read() {
+        this.push(buffer);
+        this.push(null);
+      }
+    });
   }
 }
+
+module.exports = _utils;

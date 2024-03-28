@@ -11,12 +11,12 @@ let _apiKey = null;
 const templateFunctions = {
     /**
    * Upload user template
-   * @param {String} localPath User filepath
+   * @param {String} template User filepath
    * @param {String} payload User payload
    * @param {Function} callback
    * @param {Boolean} _retry False if the request has not been retry
    */
-  addTemplate: function (localPath, payload, callback, _retry = false) {
+  addTemplate: function (template, payload, callback, _retry = false) {
     if (callback === undefined) {
       callback = payload;
       payload = '';
@@ -26,13 +26,15 @@ const templateFunctions = {
       payload = '';
     }
 
-    if (!utils.checkPathIsAbsolute(localPath)) {
-      return callback(new Error('The path must be an absolute path'));
+    if (Buffer.isBuffer(template) === false && typeof template === 'string' && !utils.checkPathIsAbsolute(template)) {
+      return callback(new Error('The template must be either: An absolute path, an URL, or a Buffer'));
     }
+
+    const _readStream = Buffer.isBuffer(template) === true ? utils.bufferToReadStream(template) : fs.createReadStream(template);
 
     const form = new FormData()
     form.append('payload', payload)
-    form.append('template', fs.createReadStream(localPath))
+    form.append('template', _readStream)
 
     get.concat({
       method: 'POST',
@@ -47,7 +49,7 @@ const templateFunctions = {
     }, (err, response, body) => {
       if (err) {
         if (err.code === 'ECONNRESET' && !_retry) {
-          return this.addTemplate(localPath, payload, callback, true);
+          return this.addTemplate(template, payload, callback, true);
         }
         return callback(err);
       }
