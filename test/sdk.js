@@ -32,7 +32,7 @@ describe('Carbone SDK', () => {
       });
     });
 
-    it('should add a template from an URL', (done) => {
+    it('should add a template from an URL (https)', (done) => {
       const nockUpload = nock(CARBONE_URL,
         {
           badheaders: ['carbone-template-delete-after'],
@@ -54,6 +54,40 @@ describe('Carbone SDK', () => {
           .reply(200, fs.createReadStream(path.join(__dirname, 'datasets', 'test.odt')));
 
       sdk.addTemplate(CARBONE_URL + 'template/invoice.odt', 'toto', (err, templateId) => {
+        assert.strictEqual(err, null);
+        assert.strictEqual(templateId, 'fileTemplateId');
+        assert.strictEqual(nockDownload.pendingMocks().length, 0);
+        assert.strictEqual(nockUpload.pendingMocks().length, 0);
+        done();
+      });
+    });
+
+    it('should add a template from an URL (http no S)', (done) => {
+      const _URL = 'http://api.carbone.io/'
+      console.log(_URL)
+      const nockUpload = nock(_URL,
+        {
+          badheaders: ['carbone-template-delete-after'],
+        })
+        .post((uri) => {
+          return uri.includes('template')
+        })
+        .reply(200, {
+          success: true,
+          data: {
+            templateId: 'fileTemplateId'
+          }
+        });
+
+      const nockDownload = nock(_URL)
+          .get((uri) => {
+            return uri.includes('template/invoice.odt')
+          })
+          .reply(200, fs.createReadStream(path.join(__dirname, 'datasets', 'test.odt')));
+
+      sdk.setOptions({ carboneUrl: _URL });
+      sdk.addTemplate(_URL + 'template/invoice.odt', 'toto', (err, templateId) => {
+        sdk.setOptions({ carboneUrl: CARBONE_URL });
         assert.strictEqual(err, null);
         assert.strictEqual(templateId, 'fileTemplateId');
         assert.strictEqual(nockDownload.pendingMocks().length, 0);
@@ -650,6 +684,36 @@ describe('Carbone SDK', () => {
         });
       });
 
+      it('should render a template with a Template ID', (done) => {
+        const _templateID = 'b94b02964087ade5026ac4607be30493983345e5fa22ddea3229fc650210436c';
+        const nockRender = nock(CARBONE_URL)
+          .post((uri) => uri.includes(_templateID))
+          .reply(200, (uri, body) => {
+            assert.strictEqual(body.data.value, true);
+            return {
+              success: true,
+              data: {
+                renderId: 'renderId'
+              }
+            };
+          })
+          .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render(_templateID, { data: { value: true } }, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(nockRender.pendingMocks().length, 0);
+          done();
+        });
+      });
+
       it('should render template and overwrite headers for one request', (done) => {
         nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
@@ -771,6 +835,170 @@ describe('Carbone SDK', () => {
           assert.strictEqual(err.toString(), 'Error: The template URL is not valid');
           assert.strictEqual(buffer, undefined)
           assert.strictEqual(filename, undefined)
+          done();
+        });
+      });
+    });
+
+    describe('Template as Buffer', () => {
+      it('should render template with a Buffer', (done) => {
+        const nockRender = nock(CARBONE_URL)
+          .post((uri) => uri.includes('template'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              templateID: 'templateID'
+            }
+          })
+          .post((uri) => uri.includes('render'))
+          .reply(200, {
+            success: true,
+            error: null,
+            data: {
+              renderId: 'renderId'
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render(Buffer.from('<html>{d.value}</html>'), {}, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(nockRender.pendingMocks().length, 0);
+          done();
+        });
+      });
+    });
+
+    describe('One time rendering (carbone-template-delete-after:0) with URL / Buffer / Path', () => {
+      it('should render template one time with a Buffer', (done) => {
+        const _template = '<html>{d.value}</html>';
+        const nockRender = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, (uri, body) => {
+            assert.strictEqual(body.data.value, true);
+            assert.strictEqual(Buffer.from(body.template, 'base64').toString(), _template); // Ta-da
+            return {
+              success: true,
+              error: null,
+              data: {
+                renderId: 'renderId'
+              }
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render(Buffer.from(_template), { data: { value: true } }, { headers: { 'carbone-template-delete-after': 0 } }, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(nockRender.pendingMocks().length, 0);
+          done();
+        });
+      });
+
+      it('should render template one time with an URL', (done) => {
+        const _template = '<html>{d.value}</html>';
+        const nockRender = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, (uri, body) => {
+            assert.strictEqual(body.data.value, true);
+            assert.strictEqual(Buffer.from(body.template, 'base64').toString(), _template); // Ta-da
+            return {
+              success: true,
+              error: null,
+              data: {
+                renderId: 'renderId'
+              }
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+
+        const nockDownload = nock(CARBONE_URL)
+            .defaultReplyHeaders({
+              'content-type': 'text/html'
+            })
+            .get((uri) => uri.includes('template.html'))
+            .reply(200, Buffer.from(_template));
+
+        sdk.render(CARBONE_URL + '/template.html', { data: { value: true } }, { headers: { 'carbone-template-delete-after': 0 } }, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(nockRender.pendingMocks().length, 0);
+          assert.strictEqual(nockDownload.pendingMocks().length, 0);
+          done();
+        });
+      });
+
+      it('should render template one time with a Template PATH', (done) => {
+        const _templatePath = path.join(__dirname, 'datasets', 'template.html');
+        const _template = fs.readFileSync(_templatePath).toString();
+        const nockRender = nock(CARBONE_URL)
+          .post((uri) => uri.includes('render'))
+          .reply(200, (uri, body) => {
+            assert.strictEqual(body.data.value, true);
+            assert.strictEqual(Buffer.from(body.template, 'base64').toString(), _template); // Ta-da
+            return {
+              success: true,
+              error: null,
+              data: {
+                renderId: 'renderId'
+              }
+            }
+          })
+          .get((uri) => uri.includes('render'))
+          // eslint-disable-next-line no-unused-vars
+          .reply(200, (uri, requestBody) => {
+            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
+          }, {
+            'Content-Disposition': 'filename="tata.txt"'
+          });
+
+        sdk.render(_templatePath, { data: { value: true } }, { headers: { 'carbone-template-delete-after': 0 } }, (err, buffer, filename) => {
+          assert.strictEqual(err, null);
+          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
+          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(nockRender.pendingMocks().length, 0);
+          done();
+        });
+      });
+
+      it('should NOT render template one time with a Template ID', (done) => {
+        const _templateID = 'b94b02964087ade5026ac4607be30493983345e5fa22ddea3229fc650210436c';
+        const nockRender = nock(CARBONE_URL)
+          .post((uri) => uri.includes(_templateID))
+          .reply(404, (uri, body) => {
+            assert.strictEqual(body.data.value, true);
+            assert.strictEqual(body.template, undefined); // Not rendering one time as the template is undefined
+            return { "success" : false, "error" : "Template not found"};
+          });
+
+        sdk.render(_templateID, { data: { value: true } }, { headers: { 'carbone-template-delete-after': 0 } }, (err, buffer, filename) => {
+          assert.strictEqual(err.toString(), 'Error: Template not found');
+          assert.strictEqual(buffer, undefined);
+          assert.strictEqual(filename, undefined);
+          assert.strictEqual(nockRender.pendingMocks().length, 0);
           done();
         });
       });
