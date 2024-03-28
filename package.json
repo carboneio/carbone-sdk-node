@@ -27,7 +27,7 @@
     "url": "git@git.ideolys.com:ideolys/carbone-sdk.git"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "author": "",
   "license": "Apache-2.0"

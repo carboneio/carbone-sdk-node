@@ -42,7 +42,7 @@ const renderFunctions = {
    * @param {Object} [options] optional object to overwrite global options: { "headers" : { "carbone-webhook-url" : "https://" }
    * @param {Function} callback
    */
-  render: async function (template, data, options, callback) {
+  render: function (template, data, options, callback) {
     if (options instanceof Function) {
       callback = options;
       options = {};
@@ -50,46 +50,35 @@ const renderFunctions = {
     // Create stream if no callback is passed in parameter
     let stream = StreamAnswer();
     
-    if (typeof template === 'string' && template?.startsWith('https://')) {
-      try {
-        template = await utils.downloadFile(template);
-      } catch (err){
+    utils.getTemplateAsBuffer(template, options, function(err, template) {
+      if (err) {
         return utils.returnStreamOrCallbackError(err, stream, callback);
       }
-    }
+      if (Buffer.isBuffer(template) === true && options?.headers?.['carbone-template-delete-after'] + '' === '0') {
+        data.template = utils.bufferToBase64(template);
+        renderFunctions._renderWithTemplateId('template', null, data, stream, callback, options);
+      } else if (Buffer.isBuffer(template) === true) {
+        _templatesFunction.addTemplate(template, data.payload, (err, templateID) => {
+          if (err) {
+            return utils.returnStreamOrCallbackError(err, stream, callback);
+          }
+          renderFunctions._renderWithTemplateId(templateID, null, data, stream, callback, options);
+        });
+      } else if (typeof template === 'string' && utils.checkPathIsAbsolute(template)) {
+        renderFunctions._calculateHash(template, data.payload, (err, hash) => {
+          if (err) {
+            return utils.returnStreamOrCallbackError(err, stream, callback);
+          }
 
-    if (options && options?.headers && options?.headers?.['carbone-template-delete-after'] + '' === '0' && 
-        (Buffer.isBuffer(template) === true || (typeof template === 'string' && template.length !== 64))) {
-      if (typeof template === 'string' && utils.checkPathIsAbsolute(template) === true) {
-        try {
-          template = fs.readFileSync(template);
-        } catch(err) {
-          return utils.returnStreamOrCallbackError(err, stream, callback);
-        }
+          renderFunctions._renderWithTemplateId(hash, template, data, stream, callback, options);
+        });
+      } else if (typeof template === 'string' && template.length === 64) {
+        renderFunctions._renderWithTemplateId(template, null, data, stream, callback, options);
+      } else {
+        return utils.returnStreamOrCallbackError(new Error('The template must be: a template ID, or template URL, or template absolute path, or a template as Buffer'), stream, callback);
       }
-      data.template = utils.bufferToBase64(template);
-      renderFunctions._renderWithTemplateId('template', null, data, stream, callback, options);
-    } else if (Buffer.isBuffer(template) === true) {
-      _templatesFunction.addTemplate(template, data.payload, (err, templateID) => {
-        if (err) {
-          return utils.returnStreamOrCallbackError(err, stream, callback);
-        }
-        renderFunctions._renderWithTemplateId(templateID, null, data, stream, callback, options);
-      });
-    } else if (utils.checkPathIsAbsolute(template)) {
-      renderFunctions._calculateHash(template, data.payload, (err, hash) => {
-        if (err) {
-          return utils.returnStreamOrCallbackError(err, stream, callback);
-        }
 
-        renderFunctions._renderWithTemplateId(hash, template, data, stream, callback, options);
-      });
-    } else if (template.length === 64) {
-      renderFunctions._renderWithTemplateId(template, null, data, stream, callback, options);
-    } else {
-      return utils.returnStreamOrCallbackError(new Error('The template must be: a template ID, or template URL, or template absolute path, or a template as Buffer'), stream, callback);
-    }
-
+    })
     return stream;
   },
   /**

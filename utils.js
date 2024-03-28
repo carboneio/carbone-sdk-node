@@ -2,7 +2,7 @@ const path = require('path');
 const URL  = require("url").URL;
 const get  = require('simple-get');
 const stream = require('stream');
-const { promisify } = require('util');
+const fs = require('fs');
 
 const _utils = {
   /**
@@ -78,7 +78,6 @@ const _utils = {
     if (callback) {
       return callback(error);
     }
-
     return stream.emit('error', error);
   },
   /**
@@ -94,11 +93,11 @@ const _utils = {
       return false;
     }
   },
-  downloadFile: promisify((url, callback) => {
+  downloadFile: (url, callback) => {
     if (_utils.validURL(url) === false) {
       return callback(new Error('The template URL is not valid'));
     }
-    get.concat({
+    return get.concat({
       url: url,
       method: 'GET',
       timeout : 10000
@@ -106,21 +105,36 @@ const _utils = {
       if (err) {
         return callback(err);
       } else  if (res.statusCode < 200 || res.statusCode >= 400) {
-        return callback(new Error(`Generate Document from a template URL failed: The download returned a ${res.statusCode} status code.`));
+        return callback(new Error(`Downloading a template URL returned a ${res.statusCode} status code`));
       }
       return callback(null, buffer);
     })
-  }),
-  bufferToBase64: (buffer) => {
+  },
+  bufferToBase64: function (buffer) {
     return Buffer.from(buffer).toString('base64')
   },
-  bufferToReadStream: (buffer) => {
+  bufferToReadStream: function (buffer) {
     return new stream.Readable({
       read() {
         this.push(buffer);
         this.push(null);
       }
     });
+  },
+  getTemplateAsBuffer: function (template, options, callback) {
+    if (typeof template === 'string' && (template?.startsWith('https://') || template?.startsWith('http://'))) {
+      return _utils.downloadFile(template, callback);
+    }
+    if (typeof template === 'string' && _utils.checkPathIsAbsolute(template) === true && 
+        options && options?.headers && options?.headers?.['carbone-template-delete-after'] + '' === '0') {
+      try {
+        template = fs.readFileSync(template);
+      } catch(err) {
+        return callback(err);
+      }
+      return callback(null, template);
+    }
+    return callback(null, template);
   }
 }
 

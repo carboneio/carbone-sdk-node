@@ -26,35 +26,41 @@ const templateFunctions = {
       payload = '';
     }
 
-    if (Buffer.isBuffer(template) === false && typeof template === 'string' && !utils.checkPathIsAbsolute(template)) {
-      return callback(new Error('The template must be either: An absolute path, an URL, or a Buffer'));
-    }
-
-    const _readStream = Buffer.isBuffer(template) === true ? utils.bufferToReadStream(template) : fs.createReadStream(template);
-
-    const form = new FormData()
-    form.append('payload', payload)
-    form.append('template', _readStream)
-
-    get.concat({
-      method: 'POST',
-      url: `${config.carboneUrl}template`,
-      body: form,
-      headers: {
-        authorization: `Bearer ${_apiKey}`,
-        "content-type": form.getHeaders()['content-type'],
-        'carbone-version': sdkConfig.getVersion(),
-        ...config.headers
-      }
-    }, (err, response, body) => {
+    utils.getTemplateAsBuffer(template, null, (err, template) => {
       if (err) {
-        if (err.code === 'ECONNRESET' && !_retry) {
-          return this.addTemplate(template, payload, callback, true);
-        }
         return callback(err);
       }
-      return utils.parseResponse(response, body, 'templateId', true, callback);
-    });
+  
+      if (Buffer.isBuffer(template) === false && typeof template === 'string' && !utils.checkPathIsAbsolute(template)) {
+        return callback(new Error('The template must be either: An absolute path, URL or a Buffer'));
+      }
+
+      const _readStream = Buffer.isBuffer(template) === true ? utils.bufferToReadStream(template) : fs.createReadStream(template);
+
+      const form = new FormData()
+      form.append('payload', payload)
+      form.append('template', _readStream)
+
+      return get.concat({
+        method: 'POST',
+        url: `${config.carboneUrl}template`,
+        body: form,
+        headers: {
+          authorization: `Bearer ${_apiKey}`,
+          "content-type": form.getHeaders()['content-type'],
+          'carbone-version': sdkConfig.getVersion(),
+          ...config.headers
+        }
+      }, function (err, response, body) {
+        if (err) {
+          if (err.code === 'ECONNRESET' && !_retry) {
+            return templateFunctions.addTemplate(template, payload, callback, true);
+          }
+          return callback(err);
+        }
+        return utils.parseResponse(response, body, 'templateId', true, callback);
+      })
+    })
   },
 
   /**
@@ -79,7 +85,7 @@ const templateFunctions = {
     }, (err, response, body) => {
       if (err) {
         if (err.code === 'ECONNRESET' && !_retry) {
-          return this.delTemplate(templateId, callback, true);
+          return templateFunctions.delTemplate(templateId, callback, true);
         }
         return callback(err);
       }
@@ -137,7 +143,7 @@ const templateFunctions = {
     })
     return stream;
   }
-};
+}
 
 module.exports = (apiKey) => {
   _apiKey = apiKey;
