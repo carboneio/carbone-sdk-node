@@ -1,8 +1,8 @@
 ### v1.5.0
-  - Added for the `addTemplate` function: the first argument support a template from an URL or Buffer or File absolute path
-  - Added for the `render` function: the first argument support a template from an URL or Buffer or File absolute path or Template ID
-  - For the `addTemplate` or `render`, if the first argument is an URL, the file is downloaded automatically
-  - For the `render` function, if the header `carbone-template-delete-after:0` has a value at zero, it generates the document but it won't store the template on your Carbone Account storage.
+  - Added for the `addTemplate` function: the first argument supports a template from a URL or Buffer or File absolute path
+  - Added for the `render` function: the first argument supports a template from a URL or Buffer or File absolute path or Template ID
+  - For the `addTemplate` or `render`, if the first argument is a URL, the file is downloaded automatically
+  - For the `render` function, if the header `carbone-template-delete-after:0` has a value of zero, it generates the document, but it won't store the template on your Carbone Account storage.
 
 ### v1.4.0
   - Add an optional object `options` to overwrite request headers when generating the report
