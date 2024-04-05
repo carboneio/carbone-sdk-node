@@ -11,12 +11,12 @@ let _apiKey = null;
 const templateFunctions = {
     /**
    * Upload user template
-   * @param {String} localPath User filepath
+   * @param {String} template User filepath
    * @param {String} payload User payload
    * @param {Function} callback
    * @param {Boolean} _retry False if the request has not been retry
    */
-  addTemplate: function (localPath, payload, callback, _retry = false) {
+  addTemplate: function (template, payload, callback, _retry = false) {
     if (callback === undefined) {
       callback = payload;
       payload = '';
@@ -26,33 +26,41 @@ const templateFunctions = {
       payload = '';
     }
 
-    if (!utils.checkPathIsAbsolute(localPath)) {
-      return callback(new Error('The path must be an absolute path'));
-    }
-
-    const form = new FormData()
-    form.append('payload', payload)
-    form.append('template', fs.createReadStream(localPath))
-
-    get.concat({
-      method: 'POST',
-      url: `${config.carboneUrl}template`,
-      body: form,
-      headers: {
-        authorization: `Bearer ${_apiKey}`,
-        "content-type": form.getHeaders()['content-type'],
-        'carbone-version': sdkConfig.getVersion(),
-        ...config.headers
-      }
-    }, (err, response, body) => {
+    utils.getTemplateAsBuffer(template, null, (err, template) => {
       if (err) {
-        if (err.code === 'ECONNRESET' && !_retry) {
-          return this.addTemplate(localPath, payload, callback, true);
-        }
         return callback(err);
       }
-      return utils.parseResponse(response, body, 'templateId', true, callback);
-    });
+  
+      if (Buffer.isBuffer(template) === false && typeof template === 'string' && !utils.checkPathIsAbsolute(template)) {
+        return callback(new Error('The template must be either: An absolute path, URL or a Buffer'));
+      }
+
+      const _readStream = Buffer.isBuffer(template) === true ? utils.bufferToReadStream(template) : fs.createReadStream(template);
+
+      const form = new FormData()
+      form.append('payload', payload)
+      form.append('template', _readStream)
+
+      return get.concat({
+        method: 'POST',
+        url: `${config.carboneUrl}template`,
+        body: form,
+        headers: {
+          authorization: `Bearer ${_apiKey}`,
+          "content-type": form.getHeaders()['content-type'],
+          'carbone-version': sdkConfig.getVersion(),
+          ...config.headers
+        }
+      }, function (err, response, body) {
+        if (err) {
+          if (err.code === 'ECONNRESET' && !_retry) {
+            return templateFunctions.addTemplate(template, payload, callback, true);
+          }
+          return callback(err);
+        }
+        return utils.parseResponse(response, body, 'templateId', true, callback);
+      })
+    })
   },
 
   /**
@@ -77,7 +85,7 @@ const templateFunctions = {
     }, (err, response, body) => {
       if (err) {
         if (err.code === 'ECONNRESET' && !_retry) {
-          return this.delTemplate(templateId, callback, true);
+          return templateFunctions.delTemplate(templateId, callback, true);
         }
         return callback(err);
       }
@@ -135,7 +143,7 @@ const templateFunctions = {
     })
     return stream;
   }
-};
+}
 
 module.exports = (apiKey) => {
   _apiKey = apiKey;

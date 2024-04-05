@@ -1,6 +1,10 @@
 const path = require('path');
+const URL  = require("url").URL;
+const get  = require('simple-get');
+const stream = require('stream');
+const fs = require('fs');
 
-module.exports = {
+const _utils = {
   /**
    * Return the absolute path of the file
    * @param {String} localPath User filepath
@@ -74,7 +78,64 @@ module.exports = {
     if (callback) {
       return callback(error);
     }
-
     return stream.emit('error', error);
+  },
+  /**
+   * Verify if an URL is valid.
+   * @param {string} URL
+   * @returns 
+   */
+  validURL: (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  },
+  downloadFile: (url, callback) => {
+    if (_utils.validURL(url) === false) {
+      return callback(new Error('The template URL is not valid'));
+    }
+    return get.concat({
+      url: url,
+      method: 'GET',
+      timeout : 10000
+    }, function (err, res, buffer) {
+      if (err) {
+        return callback(err);
+      } else  if (res.statusCode < 200 || res.statusCode >= 400) {
+        return callback(new Error(`Downloading a template URL returned a ${res.statusCode} status code`));
+      }
+      return callback(null, buffer);
+    })
+  },
+  bufferToBase64: function (buffer) {
+    return Buffer.from(buffer).toString('base64')
+  },
+  bufferToReadStream: function (buffer) {
+    return new stream.Readable({
+      read() {
+        this.push(buffer);
+        this.push(null);
+      }
+    });
+  },
+  getTemplateAsBuffer: function (template, options, callback) {
+    if (typeof template === 'string' && (template?.startsWith('https://') || template?.startsWith('http://'))) {
+      return _utils.downloadFile(template, callback);
+    }
+    if (typeof template === 'string' && _utils.checkPathIsAbsolute(template) === true && 
+        options && options?.headers && options?.headers?.['carbone-template-delete-after'] + '' === '0') {
+      try {
+        template = fs.readFileSync(template);
+      } catch(err) {
+        return callback(err);
+      }
+      return callback(null, template);
+    }
+    return callback(null, template);
   }
 }
+
+module.exports = _utils;
