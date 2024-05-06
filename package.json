@@ -1,6 +1,6 @@
 {
   "name": "carbone-sdk",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Carbone API NodeJS SDK to generate documents: PDF, DOCX, XLSX, PPTX, ODT, ODP, ODS, CSV, JPG, PNG, invoices, reports, financial, contracts, financial statements and more.",
   "main": "index.js",
   "directories": {
@@ -27,7 +27,7 @@
     "url": "git@git.ideolys.com:ideolys/carbone-sdk.git"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=16.0.0"
   },
   "author": "",
   "license": "Apache-2.0"

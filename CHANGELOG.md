@@ -1,3 +1,7 @@
+### v1.6.0
+  - The SDK supports minimum Node 16.
+  - Fixed an issue with webhook rendering
+
 ### v1.5.0
   - Added for the `addTemplate` function: the first argument supports a template from a URL or Buffer or File absolute path
   - Added for the `render` function: the first argument supports a template from a URL or Buffer or File absolute path or Template ID

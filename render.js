@@ -127,6 +127,12 @@ const renderFunctions = {
         });
       }
 
+      if (options?.headers?.['carbone-webhook-url']?.length > 0 || config?.headers?.['carbone-webhook-url']?.length) {
+        if (callback) {
+          return callback(null, 'A render ID will be sent to your webhook URL when the document is generated.', '');
+        }
+        return stream.end();
+      }
       return utils.parseResponse(response, body, undefined, true, (err, data) => {
         if (err) {
           return utils.returnStreamOrCallbackError(err, stream, callback);

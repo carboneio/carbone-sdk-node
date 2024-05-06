@@ -64,7 +64,6 @@ describe('Carbone SDK', () => {
 
     it('should add a template from an URL (http no S)', (done) => {
       const _URL = 'http://api.carbone.io/'
-      console.log(_URL)
       const nockUpload = nock(_URL,
         {
           badheaders: ['carbone-template-delete-after'],
@@ -714,8 +713,8 @@ describe('Carbone SDK', () => {
         });
       });
 
-      it('should render template and overwrite headers for one request', (done) => {
-        nock(CARBONE_URL)
+      it('should render template and overwrite headers for one request (WEBHOOK REQUEST)', (done) => {
+        const nockResponses = nock(CARBONE_URL)
           .post((uri) => uri.includes('render'))
           .reply(200, function() {
             assert.strictEqual(this.req.headers['carbone-version'], '3');
@@ -724,23 +723,17 @@ describe('Carbone SDK', () => {
               success: true,
               error: null,
               data: {
-                renderId: 'renderId'
+                renderId: ''
               }
             }
-          })
-          .get((uri) => uri.includes('render'))
-          // eslint-disable-next-line no-unused-vars
-          .reply(200, (uri, requestBody) => {
-            return fs.createReadStream(path.join(__dirname, 'datasets', 'streamedFile.txt'))
-          }, {
-            'Content-Disposition': 'filename="tata.txt"'
           });
 
         sdk.render(path.join(__dirname, 'datasets', 'test.odt'), { payload: 'myPayload' }, { headers : { 'carbone-webhook-url' : 'https://localhost:3000', 'carbone-version' : '3'} }, (err, buffer, filename) => {
           assert.strictEqual(err, null);
-          assert.strictEqual(buffer.toString(), 'Hello I am the streamed file!\n');
-          assert.strictEqual(filename, 'tata.txt');
+          assert.strictEqual(buffer.toString(), 'A render ID will be sent to your webhook URL when the document is generated.');
+          assert.strictEqual(filename, '');
           assert.strictEqual(sdk._getCache().get(path.join(__dirname, 'datasets', 'test.odt') + 'myPayload'), '94cd9cc739a678d1bf94310f1e60e4beea1348ed163b65236c7fbd207c327000');
+          assert.strictEqual(nockResponses.pendingMocks().length, 0);
           done();
         });
       });
@@ -1921,8 +1914,8 @@ describe('Carbone SDK', () => {
           });
 
         sdk.renderPromise(path.join(__dirname, 'datasets', 'test.odt'), {}, { headers : { 'carbone-webhook-url' : 'https://localhost:3000', 'carbone-version' : '3'} }).then((result) => {
-          assert.strictEqual(result.content.toString(), 'Hello I am the streamed file!\n');
-          assert.strictEqual(result.filename, 'tata.txt');
+          assert.strictEqual(result.content.toString(), 'A render ID will be sent to your webhook URL when the document is generated.');
+          assert.strictEqual(result.filename, '');
           done();
         })
         .catch((err) => {
