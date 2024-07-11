@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "noImplicitAny": true,
+      "removeComments": true,
+      "preserveConstEnums": true,
+      "sourceMap": true,
+      "outDir": "./dist"
+    },
+    "files": [
+      "templates.js",
+      "render.js",
+      "promise.js"
+    ]
+  }
