@@ -3,6 +3,7 @@
   "version": "1.6.0",
   "description": "Carbone API NodeJS SDK to generate documents: PDF, DOCX, XLSX, PPTX, ODT, ODP, ODS, CSV, JPG, PNG, invoices, reports, financial, contracts, financial statements and more.",
   "main": "index.js",
+  "types": "index.d.ts",
   "directories": {
     "test": "test"
   },
