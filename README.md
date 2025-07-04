@@ -72,7 +72,6 @@ carboneSDK.setOptions({
     'carbone-template-delete-after': 86400
   },
   // Edit the default Carbone URL (https://api.carbone.io/) for On-Premise
-  // WARNING: Add a trailing slash to the end of your URL
   carboneUrl: 'https://your-on-premise-carbone-url:4000/'
 })
 ```

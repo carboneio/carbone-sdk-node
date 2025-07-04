@@ -27,5 +27,10 @@ module.exports = {
    */
   setOptions: function (userConfig) {
     _config = Object.assign(_config, userConfig)
+  
+    // Ensure carboneUrl ends with a slash
+    if (typeof _config.carboneUrl === 'string' && !_config.carboneUrl.endsWith('/')) {
+      _config.carboneUrl += '/'
+    }
   }
 }
