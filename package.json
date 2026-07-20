@@ -1,21 +1,21 @@
 {
-  "name": "carbone-sdk",
-  "version": "1.6.0",
-  "description": "Carbone API NodeJS SDK to generate documents: PDF, DOCX, XLSX, PPTX, ODT, ODP, ODS, CSV, JPG, PNG, invoices, reports, financial, contracts, financial statements and more.",
+  "name": "carbone-sdk-node",
+  "version": "1.6.1",
+  "description": "Maintained clone of 'carbone-sdk'. Carbone API NodeJS SDK",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
-    "form-data": "4.0.0",
-    "kitten-cache": "0.3.0",
-    "simple-get": "4.0.1"
+    "form-data": "^4.0.0",
+    "kitten-cache": "^0.3.0",
+    "simple-get": "^4.0.1"
   },
   "devDependencies": {
-    "eslint": "8.56.0",
-    "eslint-plugin-node": "11.1.0",
-    "mocha": "10.2.0",
-    "nock": "13.4.0"
+    "eslint": "^8.56.0",
+    "eslint-plugin-node": "^11.1.0",
+    "mocha": "^10.2.0",
+    "nock": "^13.4.0"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --timeout 5000",
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@git.ideolys.com:ideolys/carbone-sdk.git"
+    "url": "https://github.com/gnickm/carbone-sdk-node"
   },
   "engines": {
     "node": ">=16.0.0"

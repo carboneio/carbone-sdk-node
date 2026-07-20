@@ -1,8 +1,4 @@
 # Carbone Cloud API Node SDK
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/carboneio/carbone-sdk-node?style=for-the-badge)
-[![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg?style=for-the-badge)](./API-REFERENCE.md)
-
-
 The SDK to use [Carbone Cloud API](https://carbone.io) easily.
 
 > Carbone is a report generator (PDF, DOCX, XLSX, ODT, PPTX, ODS, XML, CSV...) using templates and JSON data.
@@ -45,7 +41,7 @@ carboneSDK.render(templateAbsolutePath, body, (err, buffer, filename) => {
  * ✅ Document generated, returned values:
  * - "buffer": generated document as Buffer
  * - "Filename": document name as String
- * 
+ *
  * Now you can save the file or Stream it!
  **/
 })
@@ -226,7 +222,7 @@ sdkStream.pipe(writeStream)
 ```
 
 
-You can also overwrite headers with an optional object. Here is an example to use Carbone webhooks: 
+You can also overwrite headers with an optional object. Here is an example to use Carbone webhooks:
 
 ```js
 
@@ -302,7 +298,7 @@ const body = {
 // You can also overwrite headers with an optional object. Here is an example to use Carbone webhooks:
 const options = {
   headers : {
-    'carbone-webhook-url': 'https://...' // if you 
+    'carbone-webhook-url': 'https://...' // if you
   }
 }
 
