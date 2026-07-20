@@ -1,3 +1,6 @@
+### v1.6.1
+  - Upgraded dependencies to resolve critical vulnerabilities
+
 ### v1.6.0
   - The SDK supports minimum Node 16.
   - Fixed an issue with webhook rendering
@@ -10,8 +13,8 @@
 
 ### v1.4.0
   - Add an optional object `options` to overwrite request headers when generating the report
-    `carboneSDK.render(pathOrId, body, options, callback)` 
-    `carboneSDK.renderPromise(pathOrId, data, options)` 
+    `carboneSDK.render(pathOrId, body, options, callback)`
+    `carboneSDK.renderPromise(pathOrId, data, options)`
 
 ### v1.3.1
   - Update dependencies
